@@ -1,0 +1,3 @@
+[submodule "phasic-policy-gradient"]
+	path = phasic-policy-gradient
+	url = git@github.com:aapo-kossi/phasic-policy-gradient.git
