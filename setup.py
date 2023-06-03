@@ -1,8 +1,7 @@
 from setuptools import setup, find_packages
-import numpy as np
 
 setup(
-    name='gym-eldorado',
-    packages=find_packages(),
+    name='eldorado-environment',
+#    packages=find_packages(include = ['eldorado_environment', 'eldorado_environment.*']),
     version='0.0.1',
 )
