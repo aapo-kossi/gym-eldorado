@@ -678,7 +678,9 @@ class Map:
         location = self.player_locations[player_id]
         directions = Direction.array()
         adjacents = [self.hex_array[tuple(dir + location)] for dir in directions]
-        return np.array([mask_hex(h) for h in adjacents], dtype=np.int8)
+        mask = np.array([mask_hex(h) for h in adjacents], dtype=np.int8)
+        mask[0] = 1 # the player can always remain still
+        return mask
 
     def draw(self):
         xy = self.hex_coords

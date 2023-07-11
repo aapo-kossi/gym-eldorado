@@ -170,6 +170,7 @@ class Transmitter(Card):
         desired_card = action["get_from_shop"]
         if desired_card:
             game.selected_player.deck.add(game.shop.transmit(desired_card - 1))
+            game.selected_player.num_added_cards += 1
         return game.selected_player.agent, False
 
     def overrides(self, game):
@@ -310,7 +311,7 @@ class Shop:
         self.in_market = np.zeros(self.n_types, dtype=np.int8)
         self.in_market[[0,1,9,5,7,12]] = 1
 
-        self.n_available = np.array([CARDS_PER_TYPE] * len(self.cards))
+        self.n_available = np.array([CARDS_PER_TYPE] * len(self.cards), dtype=np.int8)
 
     @property
     def n_in_market(self):
@@ -340,7 +341,7 @@ class Shop:
         return None
     
     def observation(self):
-        return self.n_available, self.in_market
+        return np.stack((self.n_available, self.in_market), axis=1)
     
     def available_mask(self, coins):
         mask = np.zeros(self.n_types + 1, dtype=np.int8)

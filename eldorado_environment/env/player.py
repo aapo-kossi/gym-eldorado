@@ -21,6 +21,11 @@ class Player:
         self.has_won = False
         self.reset_resources()
         self.turn_phase = TurnPhase.INACTIVE
+        self.num_movements = 0
+        self.num_added_cards = 0
+        self.num_removed_cards = 0
+        self.num_spent = {r: 0 for r in Resource}
+
 
     def play_card(self, idx, use_special=False):
         ret_func = None
@@ -49,7 +54,8 @@ class Player:
                     self.resources[Resource.COIN] += 0.5
             else:
                 raise Exception("A player in an inactive turn state tried to play a card!")
-        if card.single_use:
+        remove_cond = card.single_use and not (card.special_use and not use_special)
+        if remove_cond:
             self.deck.remove(card)
             return ret_func, ret_overrides
         self.deck.use(idx)
@@ -103,3 +109,20 @@ class Player:
         removed_idx[::-1].sort()
         for idx in removed_idx:
             self.deck.remove(self.deck.hand[idx])
+        self.num_removed_cards += len(removed_idx)
+
+    @property
+    def num_machetes_spent(self):
+        return self.num_spent[Resource.MACHETE]
+
+    @property
+    def num_paddles_spent(self):
+        return self.num_spent[Resource.PADDLE]
+
+    @property
+    def num_coins_spent(self):
+        return self.num_spent[Resource.COIN]
+
+    @property
+    def num_cards_spent(self):
+        return self.num_spent[Resource.USE]

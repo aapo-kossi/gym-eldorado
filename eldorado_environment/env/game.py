@@ -56,6 +56,7 @@ class Game:
         self.done = False
         self.overrides = {}
         self.turn_counter = 0
+        self.turn_counts = [0 for _ in self.players]
 
         self.player_selector = cycle(self.players)
         self.selected_player = next(self.player_selector)
@@ -115,10 +116,12 @@ class Game:
                 
                 # movement
                 resource, n_required, fin = self.map.move_in_direction(self.selected_player, target_direction)
+                self.selected_player.num_spent[resource] += n_required
                 if resource == Resource.REMOVE:
                     self.selected_player.remove_cards(n_required)
                 self.selected_player.resources[resource] -= n_required
                 self.selected_player.has_won = fin
+                self.selected_player.num_movements += 1
             else:
 
                 # tagging for removal
@@ -130,7 +133,11 @@ class Game:
         elif phase == TurnPhase.BUYING:
             desired_card = action["get_from_shop"]
             if desired_card:
+                cost = self.shop.costs[desired_card - 1]
                 self.selected_player.deck.add(self.shop.buy(desired_card - 1))
+                self.selected_player.resources[Resource.COIN] -= cost
+                self.selected_player.num_spent[Resource.COIN] += cost
+                self.selected_player.num_added_cards += 1
             else:
                 self._maybe_play_card(action)
 

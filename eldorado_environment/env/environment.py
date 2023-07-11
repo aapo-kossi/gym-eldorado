@@ -6,7 +6,7 @@ import gymnasium as gym
 from pettingzoo import AECEnv
 from pettingzoo.utils import agent_selector, wrappers
 from gymnasium.vector.utils import batch_space
-from gymnasium.spaces import MultiDiscrete, MultiBinary, Discrete, Box, Tuple, Dict
+from gymnasium.spaces import MultiDiscrete, MultiBinary, Discrete, Box, Dict
 
 
 def eldorado_env(**kwargs):
@@ -36,7 +36,7 @@ class raw_eldoradoenv(AECEnv):
     phase_space = Discrete(2)
 
     # the shop information includes 1. how many of each card type are available and 2. which card types are on the market board
-    shop_space = Tuple([batch_space(Discrete(game.N_SHOPSTACK + 1), game.N_BUYABLETYPES),MultiBinary(game.N_BUYABLETYPES)])
+    shop_space = batch_space(MultiDiscrete([game.N_SHOPSTACK + 1, 2]), game.N_BUYABLETYPES)
 
     # hand information: which cards are in hand (unplayed)
     hand_space = batch_space(MultiBinary(game.N_CARDTYPES), game.MAX_N_HAND)
@@ -140,7 +140,6 @@ class raw_eldoradoenv(AECEnv):
         self.terminations = {agent: False for agent in self.agents}
         self.truncations = {agent: False for agent in self.agents}
         self.infos = {agent: {} for agent in self.agents}
-        self.num_moves = 0
         self.last_player = None
 
         self.agent_selection = self.agents[0]
@@ -163,8 +162,35 @@ class raw_eldoradoenv(AECEnv):
             self.truncations = {
                 agent: True for agent in self.agents
             }
+            self.infos = self._get_infos_done(agent)
         return    
 
-    def _get_info(self, agent):
-        return {}
+    # returns the complete dictionary of infos for each agent in the game as a dictionary keyed by the agent
+    # to conform to pettingzoo api. Infos are returned only once per episode, after the final step has finished.
+    def _get_infos_done(self):
+        info_dict = {
+            "episode":
+                {
+                    "total_length": self.game.turn_counter,
+            }
+        }
+        stats_dict = {}
+        for agent in self.agents:
+            n_agent = self.agent_name_mapping[agent]
+            player = self.game.players[n_agent]
+            stats_dict[agent] = {
+                "turns_taken": self.game.turn_counts[player.id],
+                "returns": self.rewards[n_agent],
+                "travelled_hexes": player.num_movements,
+                "cards_added": player.num_added_cards,
+                "cards_removed": player.num_removed_cards,
+                "n_machete_uses": player.num_machetes_spent,
+                "n_paddle_uses": player.num_paddles_spent,
+                "n_coin_uses": player.num_coins_spent,
+                "n_card_uses": player.num_cards_spent,
+            }
+
+        info_dict["player_stats"] = stats_dict
+
+        return {agent: info_dict for agent in self.agents}
 
