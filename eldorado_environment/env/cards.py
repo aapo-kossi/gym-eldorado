@@ -43,6 +43,7 @@ class Card:
     cost: int
     single_use: bool
     resources: tuple[int]
+    description: str = ""
     resource_types: tuple[Resource] = (
         Resource.MACHETE,
         Resource.PADDLE,
@@ -50,6 +51,12 @@ class Card:
     )
     special_use: bool = False
     tag_for_removal = False
+
+    def __str__(self):
+        resource_str = " | ".join([f"{R.name}: {n}" for R, n in zip(Resource, self.resources) if n])
+        resource_str = ", provides: " + resource_str if resource_str else ""
+        single_use_string = " Single use." if self.single_use else ""
+        return f"{type(self).__name__}. cost: {self.cost}{resource_str}.{single_use_string}{self.description}"
 
 @dataclass
 class Explorer(Card):
@@ -162,6 +169,7 @@ class Transmitter(Card):
     cost: int = 4
     single_use: bool = True
     resources: tuple[int] = (0,0,0)
+    description: str = " Special action: Playing this card allows you to add any card from the shop to your deck. Add the card of your choice to your discard pile."
 
     def special_use(self, game):
         return None
@@ -189,6 +197,7 @@ class Cartographer(Card):
     cost: int = 4
     single_use: bool = False
     resources: tuple[int] = (0,0,0)
+    description: str = " Special action: Draw two cards."
 
     def special_use(self, action, game):
         game.selected_player.deck.draw(2)
@@ -203,6 +212,7 @@ class Compass(Card):
     cost: int = 2
     single_use: bool = True
     resources: tuple[int] = (0,0,0)
+    description: str = " Special action: Draw three cards."
 
     def special_use(self, action, game):
         game.selected_player.deck.draw(3)
@@ -217,6 +227,7 @@ class Scientist(Card):
     cost: int = 4
     single_use: bool = False
     resources: tuple[int] = (0,0,0)
+    description: str = " Special action: Draw a card. Afterwards, you may remove one card in your hand from your deck."
 
     def special_use(self, action, game):
         game.selected_player.deck.draw(1)
@@ -239,6 +250,7 @@ class TravelLog(Card):
     cost: int = 3
     single_use: bool = True
     resources: tuple[int] = (0,0,0)
+    description: str = " Special action: Remove up to two cards in your hand from your deck."
 
     def special_use(self, action, game):
         game.selected_player.deck.draw(2)
@@ -260,6 +272,7 @@ class Native(Card):
     cost: int = 5
     single_use: bool = False
     resources: tuple[int] = (0,0,0)
+    description: str = " Special action: Move to any adjacent passable hex."
 
     def special_use(self, action, game):
         return None
@@ -352,6 +365,15 @@ class Shop:
         else:
             mask[1:] = can_afford & self.in_market & (self.n_available > 0)
         return mask
+    
+    def describe(self):
+        s = ""
+        for n, card in enumerate(self.cards):
+            mkt_board_indicator = "" if not self.in_market[n] else "On the market board."
+            s += f"Shop index {n+1}: {card()} Number available: {self.n_available[n]}. {mkt_board_indicator}\n"
+        s += f"The market board is {'not' if self.n_in_market < MKT_BOARD_SLOTS else ''} full."
+        return s
+
 
 class Deck:
     def __init__(self, rng=np.random.default_rng()):

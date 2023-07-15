@@ -1,3 +1,4 @@
+import os
 import functools
 from eldorado_environment.env import map
 from eldorado_environment.env import game
@@ -109,10 +110,16 @@ class raw_eldoradoenv(AECEnv):
     
     def render(self):
         if self.render_mode is not None:
+            if os.name == "nt":
+                os.system("cls")
+            else:
+                os.system("clear")
             if not self.game.done:
                 player = self.game.selected_player
-                print("Current map:\n")
+                print("\nCurrent map:\n")
                 print(self.game.map.draw())
+                print("\nThe shop:")
+                print(self.game.shop.describe())
                 print(f"currently playing: {player.name}")
                 print(player.describe_cards())
                 print(player.describe_resources())
@@ -162,7 +169,7 @@ class raw_eldoradoenv(AECEnv):
             self.truncations = {
                 agent: True for agent in self.agents
             }
-            self.infos = self._get_infos_done(agent)
+            self.infos = self._get_infos_done()
         return    
 
     # returns the complete dictionary of infos for each agent in the game as a dictionary keyed by the agent
