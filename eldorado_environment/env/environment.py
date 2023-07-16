@@ -84,14 +84,16 @@ class raw_eldoradoenv(AECEnv):
     reward_range = (-3,3) # end of game reward for agent: n_players*is_winner(agent) - n_winners
 
 
-    def __init__(self, n_players=4, n_pieces = 6, difficulty = map.Difficulty.HARD, render_mode=None):
+    def __init__(self, n_players=4, n_pieces = 6, difficulty = "EASY", max_steps = 100000, render_mode=None, seed=None):
         super().__init__(
             # self.observation_space,
             # self.action_space
         )
+        self.rng = np.random.default_rng(seed)
         self.n_players = n_players
         self.n_pieces = n_pieces
         self.difficulty = difficulty
+        self.max_steps = max_steps
 
         self.possible_agents = [f"player_{n}" for n in range(n_players)]
         self.agent_name_mapping = dict(
@@ -135,11 +137,13 @@ class raw_eldoradoenv(AECEnv):
         return self.game.get_obs(agent)
 
     def reset(self, seed=None, options=None):
-
-        rng = np.random.default_rng(seed)
+        if options is not None:
+            self.__dict__.update(options)
+        if seed is not None:
+            self.rng = np.random.default_rng(seed)
 
         self.agents = self.possible_agents[:]
-        self.game = game.Game(self.agents, self.n_pieces, self.difficulty, rng=rng)
+        self.game = game.Game(self.agents, self.n_pieces, self.difficulty, rng=self.rng)
 
 
         self.rewards = {ag: 0 for ag in self.agents}
@@ -164,6 +168,7 @@ class raw_eldoradoenv(AECEnv):
             return
         
         self.agent_selection, done = self.game.step(action)
+        done = done or (self.game.turn_counter >= self.max_steps)
         if done:
             self.rewards = self.game.get_rewards()
             self.truncations = {

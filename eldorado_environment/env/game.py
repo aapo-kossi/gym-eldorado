@@ -39,17 +39,17 @@ class Game:
         self,
         agents,
         n_pieces,
-        difficulty = Difficulty.EASY,
+        difficulty = "EASY",
         mapsize = (N_X,N_Y),
         rng = np.random.default_rng()
     ):
         self.agents = agents
         self.n_pieces = n_pieces
-        self.difficulty = difficulty
+        self.difficulty = Difficulty[difficulty.upper()]
         self.grid_size = mapsize
 
         self.n_players = len(agents)
-        self.map = Map.generate(n_pieces, difficulty=difficulty, rng=rng)
+        self.map = Map.generate(n_pieces, difficulty=self.difficulty, rng=rng)
         self.players = [Player(agent, id, rng=rng) for id, agent in enumerate(agents)]
         self.map.add_players(self.n_players)
         self.shop = cards.Shop()
@@ -186,5 +186,6 @@ class Game:
     def get_rewards(self):
         winners = [int(p.has_won) for p in self.players]
         n_winners = sum(winners)
+        n_winners = n_winners + 1 if not n_winners else n_winners
         rewards = [self.n_players*w - n_winners for w in winners]
         return {n: r for n,r in enumerate(rewards)}

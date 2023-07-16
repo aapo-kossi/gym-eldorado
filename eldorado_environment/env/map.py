@@ -345,7 +345,7 @@ class StartPiece(LargePiece):
         n_per_side = len(x) // 6
         return x[:n_per_side], y[:n_per_side], rots[:n_per_side]
 
-class Apiece1(StartPiece):
+class Apiece(StartPiece):
 
     type = PieceType.START
     difficulty = Difficulty.EASY
@@ -384,7 +384,48 @@ class Apiece1(StartPiece):
             Hex(Resource.MACHETE, 1),
         ]
 
-class Cpiece1(LargePiece):
+class Bpiece(StartPiece):
+
+    type = PieceType.START
+    difficulty = Difficulty.EASY
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            StartHex(4),
+            StartHex(3),
+            StartHex(2),
+            StartHex(1),
+        ] + get_n_copies(Hex(Resource.MACHETE, 1), 7) + [
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.PADDLE, 1),
+        ]
+
+class Cpiece(LargePiece):
 
     type = PieceType.TRAVEL
     difficulty = Difficulty.EASY
@@ -430,7 +471,145 @@ class Cpiece1(LargePiece):
             Hex(Resource.USE, 1),
         ]
 
-class Gpiece2(LargePiece):
+class Dpiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 3),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 3),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 3),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+        ]
+
+class Epiece(LargePiece):
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.HARD
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.PADDLE, 2),
+            MountainHex(),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.USE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.COIN, 1),
+            MountainHex(),
+            MountainHex(),
+            Hex(Resource.USE, 3),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            MountainHex(),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.MACHETE, 3),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.REMOVE, 1),
+        ]
+
+
+class Fpiece(LargePiece):
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.HARD
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.USE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.USE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 2),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.REMOVE, 2),
+            MountainHex(),
+            MountainHex(),
+            Hex(Resource.PADDLE, 3),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 2),
+            MountainHex(),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.USE, 1),
+        ]
+
+
+class Gpiece(LargePiece):
 
     type = PieceType.TRAVEL
     difficulty = Difficulty.HARD
@@ -473,10 +652,340 @@ class Gpiece2(LargePiece):
             Hex(Resource.REMOVE, 1),
         ]
 
+
+class Hpiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.COIN, 2),
+            MountainHex(),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.COIN, 3),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 1),
+        ]
+
+
+class Ipiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.REMOVE, 3),
+            MountainHex(),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.USE, 3),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 1),
+        ]
+
+
+class Jpiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.EASY
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.USE, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 2),
+            MountainHex(),
+            Hex(Resource.USE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 2),
+            Hex(Resource.USE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 2),
+            Hex(Resource.USE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.USE, 2),
+            Hex(Resource.USE, 1),
+            Hex(Resource.PADDLE, 1),
+            MountainHex(),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.USE, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+        ]
+
+
+class Kpiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.PADDLE, 3),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.COIN, 4),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+        ]
+
+
+class Lpiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            MountainHex(),
+            Hex(Resource.MACHETE, 3),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.REMOVE, 1),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.MACHETE, 2),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+        ]
+
+
+class Mpiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.HARD
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 4),
+            MountainHex(),
+            MountainHex(),
+            Hex(Resource.COIN, 4),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 2),
+            MountainHex(),
+            MountainHex(),
+            MountainHex(),
+            MountainHex(),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+        ]
+
+
+class Npiece(LargePiece):
+
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 3),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.COIN, 4),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.COIN, 3),
+            Hex(Resource.COIN, 2),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+        ]
+
+
 class Opiece(SmallPiece):
     
     type = PieceType.TRAVEL
-    difficulty = Difficulty.MEDIUM
+    difficulty = Difficulty.HARD
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.hexes = [
@@ -497,6 +1006,85 @@ class Opiece(SmallPiece):
             Hex(Resource.MACHETE, 1),
             Hex(Resource.COIN, 1),
         ]
+
+
+class Ppiece(SmallPiece):
+    
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.PADDLE, 3),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.PADDLE, 3),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.USE, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.USE, 2),
+            Hex(Resource.PADDLE, 3),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.PADDLE, 1),
+        ]
+
+
+class Qpiece(SmallPiece):
+    
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.USE, 3),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.PADDLE, 2),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.USE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.COIN, 3),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 2),
+            Hex(Resource.USE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.PADDLE, 1),
+            Hex(Resource.MACHETE, 3),
+        ]
+
+
+class Rpiece(SmallPiece):
+    
+    type = PieceType.TRAVEL
+    difficulty = Difficulty.MEDIUM
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hexes = [
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 3),
+            MountainHex(),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.REMOVE, 1),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.MACHETE, 1),
+            Hex(Resource.MACHETE, 1),
+            MountainHex(),
+            Hex(Resource.COIN, 1),
+            Hex(Resource.COIN, 1),
+        ]
+
 
 class EndPiece(MapPiece):
 
@@ -519,7 +1107,7 @@ class EndPiece(MapPiece):
     def connection_points(self, other):
         return None
 
-class EndPiece2(EndPiece):
+class EndPieceLand(EndPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.hexes = get_n_copies(EndHex(Resource.MACHETE, 1), 3)
@@ -528,12 +1116,26 @@ class EndPiece2(EndPiece):
 class Map:
 
     all_pieces = [
-        Apiece1,
-        Cpiece1,
-        Gpiece2,
+        Apiece,
+        Bpiece,
+        Cpiece,
+        Dpiece,
+        Epiece,
+        Fpiece,
+        Gpiece,
+        Hpiece,
+        Ipiece,
+        Jpiece,
+        Kpiece,
+        Lpiece,
+        Mpiece,
+        Npiece,
         Opiece,
+        Ppiece,
+        Qpiece,
+        Rpiece,
         EndPiece,
-        EndPiece2,
+        EndPieceLand,
     ]
 
     def __init__(self, pieces):
@@ -634,15 +1236,17 @@ class Map:
     def add_players(self, n_players):
         assert n_players <= 4, "Maximum number of players in a game is 4."
         self.n_players = n_players
-        start_hexes = self.hexes[:n_players] # map building always starts from the starting piece,
-                                     # and the starting pieces always start with the starting hexes
+        f = lambda elem: bool(elem[1].player_start)
+        indices, start_hexes = list(zip(*filter(f, enumerate(self._hexes))))
 
-        locs = self.hex_index[:,:n_players]
+        locs = self.hex_index[:,np.array(indices, dtype=int)]
 
-        for h in start_hexes:
+        self._player_locations = [None]*len(start_hexes)
+        for n, h in enumerate(start_hexes):
             h.occupier = h.player_start
+            self._player_locations[h.player_start-1] = tuple(locs[:,n])
 
-        self._player_locations = [tuple(locs[:,i]) for i in range(n_players)]
+        # self._player_locations = [tuple(locs[:,i]) for i in range(n_players)]
         return self._player_locations
 
     def _move(self, original_loc, target_loc):
