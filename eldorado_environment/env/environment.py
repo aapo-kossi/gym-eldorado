@@ -192,7 +192,7 @@ class raw_eldoradoenv(AECEnv):
             player = self.game.players[n_agent]
             stats_dict[agent] = {
                 "turns_taken": self.game.turn_counts[player.id],
-                "returns": self.rewards[n_agent],
+                "returns": self.rewards[agent],
                 "travelled_hexes": player.num_movements,
                 "cards_added": player.num_added_cards,
                 "cards_removed": player.num_removed_cards,
