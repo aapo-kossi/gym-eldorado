@@ -184,8 +184,9 @@ class Game:
                 special_action(action, self)
 
     def get_rewards(self):
+        agents = [p.agent for p in self.players]
         winners = [int(p.has_won) for p in self.players]
         n_winners = sum(winners)
         n_winners = n_winners + 1 if not n_winners else n_winners
         rewards = [self.n_players*w - n_winners for w in winners]
-        return {n: r for n,r in enumerate(rewards)}
+        return {a: r for a,r in zip(agents, rewards)}
