@@ -101,7 +101,7 @@ class Game:
             return self.selected_player.agent, False
 
         loc = self.map.player_locations[self.selected_player.id]
-        self.done = self.map.hex_array[loc].is_end and self.selected_player.turn_phase == TurnPhase.INACTIVE
+        self.done = self.map.hex_array[loc].is_end
         if self.done:
             return self.selected_player.agent, self.done
 
