@@ -35,7 +35,7 @@ class CardType(IntEnum):
     SCIENTIST = 18
     TRAVEL_LOG = 19
     NATIVE = 20
-    
+
 
 @dataclass
 class Card:
@@ -173,7 +173,7 @@ class Transmitter(Card):
 
     def special_use(self, game):
         return None
-    
+
     def next_turn(self, action, game):
         desired_card = action["get_from_shop"]
         if desired_card:
@@ -202,7 +202,7 @@ class Cartographer(Card):
     def special_use(self, action, game):
         game.selected_player.deck.draw(2)
         return
-    
+
     def overrides(self, game):
         return {}
 
@@ -217,7 +217,7 @@ class Compass(Card):
     def special_use(self, action, game):
         game.selected_player.deck.draw(3)
         return
-    
+
     def overrides(self, game):
         return {}
 
@@ -276,7 +276,7 @@ class Native(Card):
 
     def special_use(self, action, game):
         return None
-    
+
     def next_turn(self, action, game):
         target_direction = game._idx_direction_map[action["move"]]
         resource, n_required, fin = game.map.move_in_direction(game.selected_player, target_direction)
@@ -337,25 +337,25 @@ class Shop:
             else:
                 self.in_market[idx] = 1
         return self.get(idx)
-    
+
     def transmit(self, idx):
         return self.get(idx)
-    
+
     def get(self, idx):
 
         # return the requested card if available
         if self.n_available[idx] > 0:
             self.n_available[idx] -= 1
-            
+
             # free a market board slot if there are no cards left
             if self.n_available[idx] == 0:
                 self.in_market[idx] = 0
             return self.cards[idx]()
         return None
-    
+
     def observation(self):
         return np.stack((self.n_available, self.in_market), axis=1)
-    
+
     def available_mask(self, coins):
         mask = np.zeros(self.n_types + 1, dtype=np.int8)
         mask[0] = 1
@@ -365,7 +365,7 @@ class Shop:
         else:
             mask[1:] = can_afford & self.in_market & (self.n_available > 0)
         return mask
-    
+
     def describe(self):
         s = ""
         for n, card in enumerate(self.cards):
@@ -406,27 +406,32 @@ class Deck:
     @property
     def discard_pile(self):
         return self._discard_pile
-    
+
     def discarded_observation(self):
         return self.convert_to_unordered_obs(self._discard_pile)
-    
-    def hand_observation(self, n):
-        return self.convert_to_obs(self._hand, n)
-    
-    def played_observation(self, n):
-        return self.convert_to_obs(self._played_cards, n)
-    
+
+    def hand_observation(self):
+        return self.convert_to_unordered_obs(self._hand)
+
+    def played_observation(self):
+        return self.convert_to_unordered_obs(self._played_cards)
+
     def all_cards_observation(self):
         return self.convert_to_unordered_obs(self._all_cards)
-    
-    def hand_mask(self, n):
-        count = len(self._hand)
-        mask = np.zeros(n, dtype=np.int8)
-        mask[:count+1] = 1
+
+    def hand_mask(self):
+        mask =  (self.convert_to_unordered_obs(self._hand) > 0).astype(np.int8)
+        mask = np.insert(mask, 0, 1)
         return mask
-    
-    def hand_removable_mask(self, n):
-        return self.hand_mask(n+1)[1:] * 2
+
+    def hand_removable_mask(self):
+        mask = np.zeros((5,len(CardType)), dtype=np.int8)
+        mask[0,:] = 1
+        hand = self.hand_observation()
+        for cardtype in range(len(CardType)):
+            for i in range(hand[cardtype]):
+                mask[i+1, cardtype] = 1
+        return tuple(mask.T)
 
     @staticmethod
     def convert_to_obs(cards, max_size):
@@ -459,7 +464,7 @@ class Deck:
 
     def use(self, idx):
         self._played_cards.append(self._hand.pop(idx))
-    
+
     def _shuffle(self):
         self.rng.shuffle(self._discard_pile)
 

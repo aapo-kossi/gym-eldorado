@@ -3,6 +3,8 @@ import re
 from enum import Enum, IntEnum, auto
 import functools
 import numpy as np
+from numba import njit
+from numba.experimental import jitclass
 
 N_MAP_FEATURES = 7
 MAX_CACHED_MAPS = 128
@@ -13,7 +15,6 @@ class Resource(IntEnum):
     COIN    = 2
     USE     = 3
     REMOVE  = 4
-
 
 class Direction(Enum):
     NONE      = (0,0)
@@ -39,7 +40,7 @@ class Color(str, Enum):
     CYAN    = "\x1b[36m"
     WHITE   = "\x1b[37m"
     DEFAULT = "\x1b[39m"
-    
+
     GRAY    = "\x1b[2m\x1b[37m"
 
     BYELLOW   = YELLOW[:-1] + ";1m"
@@ -70,7 +71,6 @@ PieceType = IntEnum('PieceType', [
     "TRAVEL",
     "END",
 ])
-
 
 def get_n_copies(hex, n):
     return [Hex(**asdict(hex)) for _ in range(n)]
@@ -139,11 +139,11 @@ class Hex:
             )
         out = s + player_string
         return out
-    
+
     @classmethod
     def strlen(cls):
         return 4
-        
+
 
 @dataclass
 class MapPiece:
@@ -153,14 +153,14 @@ class MapPiece:
 
     def get_x_byidx(self, n):
         return self._x[n]
-    
+
     def get_y_byidx(self, n):
         return self._y[n]
 
     @property
     def hex_coords(self):
         return self._x, self._y
-    
+
     @hex_coords.setter
     def hex_coords(self, xy):
         #You better be sure you are only giving this function integers as inputs >:(
@@ -174,7 +174,7 @@ class MapPiece:
     # tail recursive piece rotation in increments of 60 degrees
     @staticmethod
     def rotate(x, y, times):
-        
+
         def reduce(arg, mod):
             rem = arg % mod
             large = rem > (mod // 2)
@@ -189,7 +189,7 @@ class MapPiece:
                 return -w,-u,-v
             else:
                 return cube_rotate(*cube_rotate(u,v,w, dir), times - dir)
-            
+
         times = reduce(times, 6)
 
         if times == 0:
@@ -205,7 +205,7 @@ class MapPiece:
             X,Y = cube_to_xy(U,V,W)
 
             return X,Y
-        
+
     def connection_points(self, other):
         raise NotImplementedError
 
@@ -218,7 +218,7 @@ class MountainHex(Hex):
     @Hex.occupier.setter
     def occupier(self, n):
         raise ValueError("Cannot move player onto an impassable mountain hex!")
-    
+
     def __str__(self):
         return "^Ʌ^ "
 
@@ -263,7 +263,7 @@ class LargePiece(MapPiece):
             y = np.array(y) + self.centerY
             rotations = [range(6)] * len(x)
             return x, y, rotations
-        
+
         elif issubclass(other, SmallPiece):
             xs = [np.array([1.5,2.5,3.5])]
             ys = [np.array([3.5,2.5,1.5])]
@@ -291,9 +291,9 @@ class LargePiece(MapPiece):
                 rotation.append(rotation[-1] + 1)
             x = np.array(x) + self.centerX
             y = np.array(y) + self.centerY
-            
+
             return x, y, rotation
-            
+
 # medium sized map piece with 16 hexes
 class SmallPiece(MapPiece):
 
@@ -321,7 +321,7 @@ class SmallPiece(MapPiece):
                 new_x, new_y = MapPiece.rotate(x_base, y_base, rot)
                 x[n] = new_x
                 y[n] = new_y
-            
+
             x = np.reshape(x, [-1])
             y = np.reshape(y, [-1])
             x = x + self.centerX
@@ -329,7 +329,7 @@ class SmallPiece(MapPiece):
             rotations = [range(6)] * len(x)
 
             return x, y, rotations
-        
+
         elif issubclass(other, SmallPiece):
             raise ValueError("cannot use two small pieces in a row!")
 
@@ -983,7 +983,7 @@ class Npiece(LargePiece):
 
 
 class Opiece(SmallPiece):
-    
+
     type = PieceType.TRAVEL
     difficulty = Difficulty.HARD
     def __init__(self, *args, **kwargs):
@@ -1009,7 +1009,7 @@ class Opiece(SmallPiece):
 
 
 class Ppiece(SmallPiece):
-    
+
     type = PieceType.TRAVEL
     difficulty = Difficulty.MEDIUM
     def __init__(self, *args, **kwargs):
@@ -1035,7 +1035,7 @@ class Ppiece(SmallPiece):
 
 
 class Qpiece(SmallPiece):
-    
+
     type = PieceType.TRAVEL
     difficulty = Difficulty.MEDIUM
     def __init__(self, *args, **kwargs):
@@ -1061,7 +1061,7 @@ class Qpiece(SmallPiece):
 
 
 class Rpiece(SmallPiece):
-    
+
     type = PieceType.TRAVEL
     difficulty = Difficulty.MEDIUM
     def __init__(self, *args, **kwargs):
@@ -1111,7 +1111,6 @@ class EndPieceLand(EndPiece):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.hexes = get_n_copies(EndHex(Resource.MACHETE, 1), 3)
-
 
 class Map:
 
@@ -1191,7 +1190,7 @@ class Map:
         if map is None:
             return cls.generate(n_pieces, difficulty, failures=failures+1, max_failures=max_failures)
         return map
-        
+
     def add_piece(self, piece_cls, x=None, y=None, rotation=None, rng=np.random.default_rng()):
 
         if x is None and y is None and rotation is None:
@@ -1311,11 +1310,11 @@ class Map:
     @property
     def hex_coords(self):
         return self._hex_coords
-    
+
     @property
     def hexes(self):
         return self._hexes
-    
+
     @property
     def hex_array(self):
         return self._hex_array
@@ -1323,11 +1322,11 @@ class Map:
     @property
     def hex_index(self):
         return self._hex_idx
-    
+
     @property
     def player_locations(self):
         return self._player_locations
-    
+
     def observation(self, player_id, sz):
         obs = self._obs_base(sz)
 

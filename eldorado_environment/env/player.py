@@ -27,11 +27,18 @@ class Player:
         self.num_spent = {r: 0 for r in Resource}
 
 
-    def play_card(self, idx, use_special=False):
+    def play_card(self, cardtype, use_special=False):
         ret_func = None
         ret_overrides = lambda _: {}
         phase = self.turn_phase
-        card = self.deck.hand[idx]
+        card = None
+        i = 0
+        while card is None:
+            checked = self.deck.hand[i]
+            if checked.type == cardtype:
+                card = checked
+            else:
+                i += 1
 
         # Cancel the tag for removal, since the card is used
         if card.tag_for_removal:
@@ -52,30 +59,35 @@ class Player:
                     self.resources[Resource.COIN] += card.resources[Resource.COIN]
                 else:
                     self.resources[Resource.COIN] += 0.5
+
+                # clamp coins to a maximum of 5, as no cards have a higher cost
+                self.resources[Resource.COIN] = min(self.resources[Resource.COIN],5)
             else:
                 raise Exception("A player in an inactive turn state tried to play a card!")
         remove_cond = card.single_use and not (card.special_use and not use_special)
         if remove_cond:
             self.deck.remove(card)
             return ret_func, ret_overrides
-        self.deck.use(idx)
+        self.deck.use(i)
         return ret_func, ret_overrides
-    
-    def tag_for_removal(self, idx):
-        idx = idx[:len(self.deck.hand)]
-        for n, remove in enumerate(idx):
-            self.deck.hand[n].tag_for_removal = remove
-        self.resources[Resource.REMOVE] = sum(idx)
-        
+
+    def tag_for_removal(self, counts):
+        self.resources[Resource.REMOVE] = np.sum(counts)
+        for card in self.deck.hand:
+            if counts[card.type]:
+                counts[card.type] -= 1
+                card.tag_for_removal = True
+            else: card.tag_for_removal = False
+
     def reset_resources(self):
         self.resources = np.zeros(len(Resource), dtype=np.float32)
 
     def resource_observation(self):
         return self.resources
-    
+
     def phase_observation(self):
         return int(self.turn_phase == TurnPhase.BUYING)
-    
+
     def describe_cards(self):
         s = "Current hand:\n"
         for card in self.deck.hand:
@@ -90,7 +102,7 @@ class Player:
             s += type(card).__name__ + " "
 
         return s
-    
+
     def describe_resources(self):
         s = "Current resources:\n"
         for R, n in zip(Resource, self.resources):

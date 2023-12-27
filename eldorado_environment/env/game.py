@@ -72,16 +72,16 @@ class Game:
         obs['grid'] = self.map.observation(idx, self.grid_size)
         obs['phase'] = player.phase_observation()
         obs['shop'] = self.shop.observation()
-        obs['hand'] = player.deck.hand_observation(MAX_N_HAND)
-        obs['played'] = player.deck.played_observation(MAX_N_HAND)
+        obs['hand'] = player.deck.hand_observation()
+        obs['played'] = player.deck.played_observation()
         obs['deck'] = player.deck.all_cards_observation()
         obs['discard'] = player.deck.discarded_observation()
         obs['resources'] = player.resource_observation()
 
         mask = {}
-        mask["play"] = player.deck.hand_mask(MAX_N_HAND + 1)
+        mask["play"] = player.deck.hand_mask()
         mask["play_special"] = np.array([1,1], dtype=np.int8)
-        mask["remove"] = player.deck.hand_removable_mask(MAX_N_HAND)
+        mask["remove"] = player.deck.hand_removable_mask()
         mask["move"] = self.map.movement_mask(player.id, player.resources)
         mask["get_from_shop"] = self.shop.available_mask(player.resources[Resource.COIN])
 
@@ -91,7 +91,7 @@ class Game:
 
         return {"observation": obs, "action_mask": mask}
 
-    
+
     def step(self, action):
 
         if "step" in self.overrides:
@@ -113,7 +113,7 @@ class Game:
 
             target_direction = self._idx_direction_map[action["move"]]
             if np.any(target_direction != Direction.NONE.value):
-                
+
                 # movement
                 resource, n_required, fin = self.map.move_in_direction(self.selected_player, target_direction)
                 self.selected_player.num_spent[resource] += n_required
@@ -159,7 +159,7 @@ class Game:
         if should_cycle:
             player.turn_phase = TURN_CYCLE[phase]
         return player.turn_phase
-    
+
     def _maybe_cycle_player(self):
         player = self.selected_player
         if player.has_won or player.turn_phase == TurnPhase.INACTIVE:

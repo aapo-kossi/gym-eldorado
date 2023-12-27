@@ -1,5 +1,7 @@
 import os
 import functools
+
+from gymnasium.spaces.space import Space
 from eldorado_environment.env import map
 from eldorado_environment.env import game
 import numpy as np
@@ -12,14 +14,59 @@ from gymnasium.spaces import MultiDiscrete, MultiBinary, Discrete, Box, Dict
 
 def eldorado_env(**kwargs):
     env = raw_eldoradoenv(**kwargs)
-    # env = wrappers.AssertOutOfBoundsWrapper(env)
     env = wrappers.OrderEnforcingWrapper(env)
+    env = flatten_obs_wrapper(env)
     return env
 
+class flatten_obs_wrapper(wrappers.BaseWrapper):
+    def __init__(self, env: AECEnv):
+        print(type.mro(type(env)))
+        assert (
+            isinstance(env, raw_eldoradoenv)
+            or isinstance(env.unwrapped, raw_eldoradoenv)
+        ), "This observation flattening wrapper is only compatible with the eldorado environment"
+        super().__init__(env)
+
+    def observe(self, agent):
+        raw_obs = super().observe(agent)
+        layer_sizes, grid_size = self.stacked_shape()
+        stacked_obs = np.zeros(grid_size + (np.sum(layer_sizes),), dtype=np.float32)
+        loc = 0
+        for name, obs in raw_obs["observation"].items():
+            if isinstance(obs, int):
+                newloc = loc+1
+                stacked_obs[:,:,loc] = obs
+            elif name != 'grid':
+                newloc = loc+np.prod(obs.shape)
+                stacked_obs[:,:,loc:newloc] = obs.flatten()
+            else:
+                newloc = loc+np.prod(obs.shape[2:])
+                stacked_obs[:,:,loc:newloc] = obs
+        return {"observation": stacked_obs, "action_mask": raw_obs["action_mask"]}
+
+    @functools.lru_cache(maxsize=None)
+    def stacked_shape(self):
+        obs_space = self.env.observation_space(None)['observation']
+        n_layers = np.zeros(len(obs_space), dtype = np.int32)
+        for n, (name, space) in enumerate(obs_space.items()):
+            if name != 'grid':
+                n_layers[n] = np.prod(space.shape)
+            else:
+                n_layers[n] = np.prod(space.shape[2:])
+                grid_size = space.shape[:2]
+        return n_layers, grid_size
+
+    @functools.lru_cache(maxsize=None)
+    def observation_space(self, agent: str) -> Space:
+        n_layers, grid_size = self.stacked_shape()
+        return Dict({
+            "observation": Box(0, 6, grid_size + (np.sum(n_layers),)),
+            "action_mask": self.env.observation_space(agent)["action_mask"]
+        })
 
 class raw_eldoradoenv(AECEnv):
 
-    metadata = {"render_modes": ["human", "ANSI"], "render_fps": 1, "name": "eldorado"}
+    metadata = {"render_modes": ["human", "ansi"], "render_fps": 1, "name": "eldorado"}
 
 
     # define observation spaces
@@ -40,10 +87,10 @@ class raw_eldoradoenv(AECEnv):
     shop_space = batch_space(MultiDiscrete([game.N_SHOPSTACK + 1, 2]), game.N_BUYABLETYPES)
 
     # hand information: which cards are in hand (unplayed)
-    hand_space = batch_space(MultiBinary(game.N_CARDTYPES), game.MAX_N_HAND)
+    hand_space = batch_space(Discrete(5), game.N_CARDTYPES)
 
     # resource information: left-over resources accumulated during the turn (maximum of 5 per resource)
-    resource_space = Box(0,5, shape = (game.N_RESOURCETYPES,))
+    resource_space = Box(0,6, shape = (game.N_RESOURCETYPES,))
 
     deck_space = batch_space(Discrete(5), game.N_CARDTYPES)
 
@@ -59,14 +106,14 @@ class raw_eldoradoenv(AECEnv):
             "discard": deck_space
         }),
         "action_mask": Dict({
-            "play": MultiBinary(game.MAX_N_HAND + 1),
+            "play": MultiBinary(game.N_CARDTYPES + 1),
             "play_special": MultiBinary(2),
-            "remove": batch_space(Discrete(3),game.MAX_N_HAND),
+            "remove": MultiBinary([game.N_CARDTYPES,5]),
             "move": MultiBinary(len(map.Direction)),
             "get_from_shop": MultiBinary(game.N_BUYABLETYPES + 1),
         })
     })
-    
+
     # define action space:
     # which cards to play,
     # which cards to use special action for,
@@ -74,9 +121,9 @@ class raw_eldoradoenv(AECEnv):
     # which direction to move in,
     # which card to acquire (through the transmitter or buying)
     _action_space = Dict({
-        "play": Discrete(game.MAX_N_HAND + 1),
+        "play": Discrete(game.N_CARDTYPES + 1),
         "play_special": Discrete(2),
-        "remove": MultiBinary(game.MAX_N_HAND),
+        "remove": batch_space(Discrete(5), game.N_CARDTYPES),
         "move": Discrete(len(map.Direction)),
         "get_from_shop": Discrete(game.N_BUYABLETYPES + 1)
     })
@@ -105,11 +152,11 @@ class raw_eldoradoenv(AECEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         return self._observation_space
-    
+
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
         return self._action_space
-    
+
     def render(self):
         if self.render_mode is not None:
             if os.name == "nt":
@@ -155,7 +202,7 @@ class raw_eldoradoenv(AECEnv):
 
         self.agent_selection = self.agents[0]
 
-        return 
+        return
 
     def step(self, action):
         agent = self.game.selected_player.agent
@@ -166,7 +213,7 @@ class raw_eldoradoenv(AECEnv):
         ):
             self._was_dead_step(action)
             return
-        
+
         self.agent_selection, done = self.game.step(action)
         done = done or (self.game.turn_counter >= self.max_steps)
         if done:
@@ -175,7 +222,7 @@ class raw_eldoradoenv(AECEnv):
                 agent: True for agent in self.agents
             }
             self.infos = self._get_infos_done()
-        return    
+        return
 
     # returns the complete dictionary of infos for each agent in the game as a dictionary keyed by the agent
     # to conform to pettingzoo api. Infos are returned only once per episode, after the final step has finished.
