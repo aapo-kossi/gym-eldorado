@@ -15,12 +15,15 @@ from gymnasium.spaces import MultiDiscrete, MultiBinary, Discrete, Box, Dict
 def eldorado_env(**kwargs):
     env = raw_eldoradoenv(**kwargs)
     env = wrappers.OrderEnforcingWrapper(env)
+    return env
+
+def flat_eldorado_env(**kwargs):
+    env = eldorado_env(**kwargs)
     env = flatten_obs_wrapper(env)
     return env
 
 class flatten_obs_wrapper(wrappers.BaseWrapper):
     def __init__(self, env: AECEnv):
-        print(type.mro(type(env)))
         assert (
             isinstance(env, raw_eldoradoenv)
             or isinstance(env.unwrapped, raw_eldoradoenv)

@@ -1,4 +1,4 @@
-from eldorado_environment.env.environment import raw_eldoradoenv, eldorado_env
+from eldorado_environment.env.environment import raw_eldoradoenv, eldorado_env, flat_eldorado_env
 
 # Hide pygame support prompt
 import os

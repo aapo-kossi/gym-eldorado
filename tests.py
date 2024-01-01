@@ -1,4 +1,4 @@
-from eldorado_environment import eldorado_env
+from eldorado_environment import eldorado_env, flat_eldorado_env
 from pettingzoo.test import api_test
 import logging
 
@@ -12,5 +12,5 @@ def test_iteration():
                 break
 
 def test_pettingzoo():
-    env = eldorado_env()
+    env = flat_eldorado_env()
     api_test(env)

@@ -3,8 +3,6 @@ import re
 from enum import Enum, IntEnum, auto
 import functools
 import numpy as np
-from numba import njit
-from numba.experimental import jitclass
 
 N_MAP_FEATURES = 7
 MAX_CACHED_MAPS = 128
