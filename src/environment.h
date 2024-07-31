@@ -1,10 +1,10 @@
-
 #include "player.h"
 #include "map.h"
 #include "cards.h"
 
 typedef unsigned short ushort
-const ushort N_PLAYERS = 4;
+static const ushort N_PLAYERS = 4;
+static const ushort GRIDSIZE = 48;
 
 // Define globals for python interface
 struct Observation {
@@ -42,7 +42,7 @@ struct EpisodeInfo {
 };
 struct AgentInfo {
     ushort turns_taken;
-    ushort returns;
+    float returns;
     ushort travelled_hexes;
     ushort cards_added;
     ushort cards_removed;
@@ -53,25 +53,38 @@ struct AgentInfo {
 };
 struct Info {
     struct EpisodeInfo episode_info;
-    struct AgentInfo agent_infos[N_PLAYERS];
+    std::vector<AgentInfo> agent_infos;
 };
+
 char render_data[1 << 13]
 
 // Declarations for functions
 void myFunction(int parameter1, double parameter2);
 
 // Declarations for classes
-class EldoradoEnv{
+class eldorado_env{
+private:
+    int seed;
+    ushort n_players;
+    ushort n_pieces;
+    char* difficulty;
+    unsigned int max_steps;
+    bool b_render;
+
 public:
-    MyClass(
+    Info info;
+    bool dead_step;
+
+    eldorado_env(
         int seed = NULL,
         ushort n_players = N_PLAYERS,
         ushort n_pieces = DEFAULT_N_PIECES,
         char* difficulty = DEFAULT_DIFFICULTY,
         unsigned int max_steps = 100000,
         bool render = false
-    )
-    ~MyClass();
+    );
+    
+    ~eldorado_env();
 
     void reset(
         int seed = NULL,
@@ -91,8 +104,4 @@ public:
     );
 
     void render();
-
-private:
-    // Private members or helper functions
-    ;
 };
