@@ -1,253 +1,330 @@
-#include <random>
-#include <cstdlib>
-#include <iostream>
-
-#include "environment.h"
-#include "player.h"
-#include "map.h"
+#include "api.h"
 #include "cards.h"
+#include "constants.h"
+#include "environment.h"
+#include <cassert>
+#include <iostream>
+#include <ostream>
+#include <random>
 
-static const ushort RNG_WORDSIZE = 64;
-static const ActionData NULL_ACTION;
+eldorado_env::eldorado_env()
+    : seed(std::random_device()()), n_players(MAX_N_PLAYERS),
+      n_pieces(DEFAULT_N_PIECES), difficulty(DEFAULT_DIFFICULTY),
+      max_steps(MAX_STEPS), b_render(false), rng(seed), observations(nullptr),
+      info(nullptr), map(), shop(), shop_free(false),
+      special_function(nullptr) {};
 
-eldorado_env::eldorado_env(
-    int seed = NULL,
-    ushort n_players = N_PLAYERS,
-    ushort n_pieces = DEFAULT_N_PIECES,
-    char* difficulty = DEFAULT_DIFFICULTY,
-    unsigned int max_steps = 100000,
-    bool render = false
-) : seed(seed)
-  , n_players(n_players)
-  , n_pieces(n_pieces)
-  , difficulty(difficulty)
-  , max_steps(max_steps)
-  , b_render(render)
-  , rng(seed) {
+eldorado_env::eldorado_env(unsigned long seed_, u_char n_players_,
+                           u_char n_pieces_, Difficulty difficulty_,
+                           unsigned int max_steps_, bool render)
+    : seed(seed_), n_players(n_players_), n_pieces(n_pieces_),
+      difficulty(difficulty_), max_steps(max_steps_), b_render(render),
+      rng(seed), observations(nullptr), info(nullptr), map(), shop(),
+      shop_free(false), special_function(nullptr) {};
 
+void eldorado_env::init(ObsData &observations_, Info &info_,
+                        std::array<float, MAX_N_PLAYERS> &rewards_,
+                        ActionMask &selected_) {
+  observations = &observations_;
+  info = &info_;
+  rewards = &rewards_;
+  selected_action_mask = &selected_;
+  map.init(observations->shared.map);
+  shop.init(observations->shared.shop);
+  for (u_char i = 0; i < n_players; i++) {
+    players[i].initialize(i, &rng, &observations->player_data[i].obs,
+                          selected_action_mask,
+                          &observations->player_data[i].action_mask,
+                          &observations->shared.current_resources);
+  }
+}
+
+void eldorado_env::reset() {
+
+  agent_selection = 0;
+  observations->shared.phase = static_cast<u_char>(TurnPhase::INACTIVE);
+
+  map.reset();
+  map.generate(n_pieces, difficulty, 0, MAX_FAILURES, rng);
+  for (u_char i = 0; i < n_players; i++) {
+    players[i].reset();
+  }
+  map.add_players(n_players);
+
+  shop.reset();
+
+  done = false;
+  special_function = nullptr;
+  turn_counter = 0;
+  for (u_char i = 0; i < n_players; i++) {
+    update_observation(i);
+  }
+  *selected_action_mask =
+      observations->player_data[agent_selection].action_mask;
 };
 
-eldorado_env::~eldorado_env() {};
-
-void eldorado_env::reset(
-    int seed = NULL,
-    ushort n_players = N_PLAYERS,
-    ushort n_pieces = DEFAULT_N_PIECES,
-    char* difficulty = DEFAULT_DIFFICULTY,
-    unsigned int max_steps = 100000,
-    bool render = false
-) {
-        n_players = n_players;
-        n_pieces = n_pieces;
-        difficulty = difficulty;
-        max_steps = max_steps;
-        b_render = render;
-        if ( seed != NULL ) {
-            rng = default_random_generator(seed);
-        }
-
-        truncations = std::vector<bool>(n_players, false);
-        rewards = std::vector<float>(n_players, 0.0);
-        std::vector<AgentInfo> infos = {};
-        EpisodeInfo ep_info = {0};
-
-        info = {ep_info, infos};
-        last_player = NULL;
-
-        agent_selection = 0;
-
-        map = Map::generate();
-        std::vector<Player> players;
-        for (auto i=0; i < n_players; i++) {
-            players.push_back(Player(i, &rng));
-        }
-        map.add_players(n_players);
-        shop = ;
-        done = false;
-        step_override = NULL;
-        turn_counter = 0;
-        std::vector<unsigned int> turn_counts(n_players, 0);
+void eldorado_env::reset(unsigned long seed_, u_char n_players_,
+                         u_char n_pieces_, Difficulty difficulty_,
+                         unsigned int max_steps_, bool render_) {
+  n_players = n_players_;
+  n_pieces = n_pieces_;
+  difficulty = difficulty_;
+  max_steps = max_steps_;
+  seed = seed_;
+  rng.seed(seed);
+  b_render = render_;
+  reset();
 }
 
 void eldorado_env::next_agent() {
-    agent_selection = (agent_selection + 1);
-    agent_selection -= n_players * (agent_selection >= n_players);
+  Player &p = players[agent_selection];
+  p.end_turn();
+  agent_selection += 1;
+  if (agent_selection >= n_players) {
+    agent_selection = 0;
+  }
+  players[agent_selection].load_actionmask();
+  observations->shared.current_resources.fill(0);
+  turn_counter++;
 }
 
-void eldorado_env::next_phase() {
-    phase = (phase + 1);
-    phase -= TurnPhase.END * (phase >= TurnPhase.END);
-}
+void eldorado_env::step(const ActionData &action) {
+  dead_step = done;
+  if (dead_step) {
+    return;
+  }
 
-void eldorado_env::step( struct ActionData &action ) {
-    bool dead_step = truncations[agent_selection];
-    if ( dead_step ) { return; }
+  info->agent_infos[agent_selection].steps_taken += 1;
+  maybe_cycle_phase();
 
-    if ( step_override != NULL ) {
-        step_override( &action, &players[agent_selection], &map );
-        maybe_cycle_players();
-    }
-        
-    HexCoord loc = map.player_locations[agent_selection];
-    done = map.hex_array[loc].is_end;
-    if (done) { return; }
-    
-    maybe_cycle_phase();
+  Player &p = players[agent_selection];
+  p.stepped();
 
-    if ( phase == TurnPhase.MOVEMENT ) {
-        movement_turn(&action);
-    }
-    else {
-        shop_turn(&action);
-    }
-    maybe_cycle_phase();
-    maybe_cycle_player();
+  // activating card
+  if (action.play) {
+    u_char i = action.play - 1;
+    p.play_card(static_cast<CardType>(i),
+                static_cast<TurnPhase>(observations->shared.phase));
 
-    done = done | (turn_counter >= max_steps); 
-    if ( done ) {
-        info.episode_info.total_length = turn_counter;
-        for ( auto agent = 0; agent < n_players; agent++ ) {
-            Player player = players[agent];
-            AgentInfo agent_info = info.agent_infos[agent];
-            agent_info.turns_taken = turn_counts[agent];
-            agent_info.returns = rewards[agent] = get_reward(agent);
-            agent_info.travelled_hexes = player.n_movements;
-            agent_info.cards_added = player.n_added_cards
-            agent_info.cards_removed = player.n_removed_cards;
-            agent_info.n_machete_uses = player.n_spent_machete;
-            agent_info.n_paddle_uses = player.n_spent_paddle;
-            agent_info.n_coin_uses = player.n_spent_coin;
-            agent_info.n_card_uses = player.n_spent_card;
-        }
-        truncations = std::vector<bool>(n_players, true);
-    }
-};
+    // playing card with special action
+  } else if (action.play_special) {
+    special_function =
+        p.play_special(static_cast<CardType>(action.play_special - 1));
 
-inline void eldorado_env::movement_turn( struct ActionData &action ) {
-    player = players[agent_selection];
-    Direction dir = DIRECTIONS[action.move];
-    if ( dir != Direction.NONE ) {
-        MovementData data = map.move_in_direction(player, dir);
-        player.n_spent[data.resource] += data.n_required;
-        player.resources[data.resource] -= n_required;
-        if ( data.resource == Resources.REMOVE ) {
-            player.remove_cards(n_required);
-        }
-        player.has_won = data.fin;
-        player.n_movements += 1;
+    // player moving
+  } else if (action.move) {
+    MovementInfo data = map.move_in_direction(agent_selection, action.move);
+    if (!p.next_move_free) {
+      p.handle_requirement(data.requirement, data.n_required);
     } else {
-        player.tag_for_removal( &(action.remove) );
-        maybe_play_card( &action );
-}
-
-inline void eldorado_env::shop_turn( struct ActionData &action ) {
-    player = players[agent_selection];
-    ushort desired_card = action.get_from_shop;
-    if ( desired_card ) {
-        ushort i = desired_card - 1;
-        ushort cost = shop.costs[i];
-        player.deck.add(shop.buy(i));
-        player.resources[Resources.COIN] -= cost;
-        player.n_spent[Resources.COIN] += cost;
-        player.n_added_cards += 1;
-    else {
-        maybe_play_card( &action );
+      p.next_move_free = false;
+      p.enable_playing();
     }
-}
+    p.moved();
+    p.has_won = data.is_end;
 
-inline void eldorado_env::maybe_cycle_phase(const ActionData &action ) {
-    player = players[agent_selection];
-    bool should_cycle = phase == TurnPhase.INACTIVE;
-    bool not_playing = (action != NULL_ACTION) && (!action.play);
-    bool in_shop = phase == TurnPhase.SHOP;
-    bool movement_phase_still = (phase == TurnPhase.MOVEMENT) && (!action.move);
-    should_cycle = should_cycle || (not_playing && (in_shop || movement_phase_still));
-    }
-    if ( should_cycle ) { next_phase(); }
-}
+    // action is not playing or moving, thus native cannot be active!
+    // remaining checks for getting new card and removing a card
+  } else {
+    p.next_move_free = false;
 
-inline void eldorado_env::maybe_cycle_player() {
-    player = players[agent_selection];
-    if ( player.has_won | (phase == TurnPhase.INACTIVE) ) {
-        player.deck.discard_played();
-        auto remaining_cards = player.deck.hand_size();
-        auto n_draw = MIN_N_HAND - remaining_cards;
-        if ( n_draw > 0 ) {
-            player.deck.draw(n_draw);
-        }
-        player.reset_resources();
-        next_agent();
-        turn_counter++;
-    }
-}
+    // adding card to the player deck
+    if (action.get_from_shop) {
+      u_char i = action.get_from_shop - 1;
+      const Card *card;
+      if (p.next_card_free) {
+        card = &shop.transmit(i);
+      } else {
+        card = &shop.buy(i);
+        p.pay(card->cost);
+        cycle_phase();
+      }
+      p.add_card(card->type);
 
-void eldorado_env::observe( ushort agent ) {
-    player = players[agent];
-    obs.grid = map.observation(agent, grid_size);
-    obs.phase = phase;
-    obs.shop = shop.obs();
-    obs.hand = player.deck.hand_obs();
-    obs.played = player.deck.played_obs();
-    obs.deck = player.deck.deck_obs();
-    obs.discard = player.deck.discard_obs();
-    obs.resources = player.resource_obs();
+      // Removing card from the player deck
+    } else if (action.remove) {
+      u_char card_to_remove = action.remove - 1;
+      p.remove_from_hand(card_to_remove);
 
-    action_mask.play = player.deck.hand_mask();
-    action_mask.play_special = {1, 1};
-    action_mask.remove = player.deck.hand_removable_mask();
-    action_mask.move = map.movement_mask(agent, &(player.resources));
-    action_mask.get_from_shop = shop.available_mask( &(player.resources[Resources.COIN]) );
+      // Check if this was the last available remove
+      if (!--p.n_removes) {
+        p.enable_playing();
 
-    if ( mask_override != NULL ) {
-        mask_override( &action_mask ) 
+        // if not, shop needs to still be disabled to prevent removes
+        // persisting to the next turn
+      } else {
+        special_function = [](ActionMask &mask, Player &, Map &, Shop &s) {
+          s.set_available_mask(0, mask.get_from_shop);
+        };
+      };
+
+      // action was null, remove actions cannot be delayed
+    } else {
+      cycle_phase();
+      if (p.n_removes > 0) {
+        p.n_removes = 0;
+        p.enable_playing();
+      }
     }
 
+    if (p.next_card_free) {
+      p.next_card_free = false;
+      p.enable_playing();
+    }
+  }
+
+  if (p.movement_in_progress && !action.move) {
+    p.movement_in_progress = false;
+    observations->shared.current_resources.fill(0);
+  }
+
+  maybe_end_turn();
+  update_observation(agent_selection);
+  if (special_function != nullptr) {
+    special_function(observations->player_data[agent_selection].action_mask, p,
+                     map, shop);
+    special_function = nullptr;
+  } else if (map.player_done(agent_selection) || (turn_counter >= max_steps)) {
+
+    done = true;
+    info->total_length = turn_counter;
+    for (u_char agent = 0; agent < n_players; agent++) {
+      Player &player = players[agent];
+      AgentInfo &agent_info = info->agent_infos[agent];
+      agent_info.steps_taken = player.get_steps_taken();
+      agent_info.returns = (*rewards)[agent] = get_reward(agent);
+      agent_info.travelled_hexes = player.get_n_movements();
+      agent_info.cards_added = player.get_n_added_cards();
+      const std::array<unsigned int, N_RESOURCETYPES> &n_spent =
+          player.get_n_spent();
+      agent_info.n_machete_uses =
+          n_spent[static_cast<u_char>(Resource::MACHETE)];
+      agent_info.n_paddle_uses = n_spent[static_cast<u_char>(Resource::PADDLE)];
+      agent_info.n_coin_uses = n_spent[static_cast<u_char>(Resource::COIN)];
+      agent_info.n_card_uses = player.get_n_discarded();
+      agent_info.cards_removed = player.get_n_removed();
+    }
+  }
+  [[maybe_unused]] auto &pd = observations->player_data[agent_selection].obs;
+  [[maybe_unused]] auto &pm = *selected_action_mask;
+  for (size_t i = 1; i < N_CARDTYPES + 1; i++) {
+    assert((pm.play[i] && !pd.hand[i - 1]) && "play mask fucked");
+    assert((pm.play_special[i] && !pd.hand[i - 1]) && "special mask fucked");
+    assert((pm.remove[i] && !pd.hand[i - 1]) && "remove mask fucked");
+    assert((pd.draw[i - 1] > MAX_CARD_COPIES) && "draw invalid");
+    assert((pd.hand[i - 1] > MAX_CARD_COPIES) && "hand invalid");
+    assert((pd.active[i - 1] > MAX_CARD_COPIES) && "active invalid");
+    assert((pd.played[i - 1] > MAX_CARD_COPIES) && "played invalid");
+    assert((pd.discard[i - 1] > MAX_CARD_COPIES) && "discard invalid");
+  };
+  for (size_t i = 0; i < static_cast<size_t>(Resource::MAX_RESOURCE); i++) {
+    assert((observations->shared.current_resources[i] < 0.0) &&
+           "resources fucked");
+  }
 };
 
-inline void eldorado_env::maybe_play_card(const ActionData &action) {
-    player = players[agent_selection];
-    ushort played_card = action.play;
-    bool playing(played_card);
-    if (playing) {
-        ushort i = played_card - 1;
-        CardData card_data = player.play_card(i, action.play_special);
-        special_action = CardData.special_action;
-        step_override = CardData.step_override;
-        mask_override = CardData.mask_override;
-
-        if ( special_action != NULL ) {
-            special_action(&action, &player, &map);
-        }
-    }
+void eldorado_env::maybe_cycle_phase() {
+  if (observations->shared.phase == static_cast<u_char>(TurnPhase::INACTIVE)) {
+    observations->shared.phase = static_cast<u_char>(
+        ::cycle_phase(static_cast<TurnPhase>(observations->shared.phase)));
+  }
 }
+
+// Turn phases change according to the following logic:
+// The movement phase ends if the player neither plays a card or moves
+// The shop phase ends when the player is not playing a card
+// This shop behaviour naturally limits the player to buying only
+// a maximum of a single card per turn
+// Special actions handle their turn phase logic independently
+inline void eldorado_env::cycle_phase() {
+  observations->shared.phase = static_cast<u_char>(
+      ::cycle_phase(static_cast<TurnPhase>(observations->shared.phase)));
+}
+
+void eldorado_env::maybe_end_turn() {
+  Player &player = players[agent_selection];
+  if (player.has_won || (observations->shared.phase ==
+                         static_cast<u_char>(TurnPhase::INACTIVE))) {
+    next_agent();
+  }
+}
+
+void eldorado_env::update_observation(u_char agent) {
+
+  ActionMask &am = observations->player_data[agent].action_mask;
+  am.move.fill(false);
+  am.move[0] = true;
+  am.get_from_shop.fill(false);
+  am.get_from_shop[0] = true;
+
+  switch (static_cast<TurnPhase>(observations->shared.phase)) {
+  case TurnPhase::INACTIVE:
+    break;
+  case TurnPhase::MOVEMENT:
+    map.set_movement_mask(observations->player_data[agent].action_mask, agent,
+                          observations->shared.current_resources,
+                          players[agent].get_n_active());
+    break;
+  case TurnPhase::BUYING:
+    shop.set_available_mask(
+        observations->shared
+            .current_resources[static_cast<u_char>(Resource::COIN)],
+        observations->player_data[agent].action_mask.get_from_shop);
+
+    break;
+  case TurnPhase::MAX_PHASE:
+    assert(false && "Environment in invalid turn phase");
+    break;
+  }
+};
+
+float eldorado_env::get_reward(u_char agent) {
+  float n_winners = 0;
+  for (auto player : players) {
+    n_winners += player.has_won;
+  };
+
+  return n_players * players[agent].has_won - n_winners;
+};
 
 void eldorado_env::render() {
-    if (b_render) {
-        clear_console();
-            if (!done) {
-                player = players[agent_selection];
-                cout << "\nCurrent map:\n" << endl;
-                cout << map.draw() << endl;
-                cout << "\nThe shop:" << endl;
-                cout << shop.describe() << endl;
-                cout << f"currently playing: {player.name}" << endl;
-                cout << player.describe_cards() << endl;
-                cout << player.describe_resources() << endl;
-            }
-            else {
-                cout << "game over" << endl;
-            }
+  if (b_render) {
+    clear_console();
+    if (!done) {
+      const Player &player = players[agent_selection];
+      std::cout << "\nCurrent map:\n" << std::endl;
+      std::cout << map.draw() << std::endl;
+      std::cout << "\nThe shop:" << std::endl;
+      std::cout << shop.describe() << std::endl;
+      std::cout << "currently playing: " << agent_selection << std::endl;
+      std::cout << player.get_deck().to_string() << std::endl;
+      std::cout << player.describe_resources() << std::endl;
+    } else {
+      std::cout << "game over" << std::endl;
     }
-        else:
-            cout << "You are calling render method without specifying any render mode." << endl;
-        return
+  } else {
+    std::cout
+        << "You are calling render method without specifying any render mode."
+        << std::endl;
+  }
 }
+const Map &eldorado_env::get_map() const { return map; };
+unsigned long eldorado_env::get_seed() const { return seed; };
+u_char eldorado_env::get_n_players() const { return n_players; };
+const Player &eldorado_env::get_player(u_char n) const { return players[n]; };
+u_char eldorado_env::get_n_pieces() const { return n_pieces; };
+Difficulty eldorado_env::get_difficulty() const { return difficulty; };
+unsigned int eldorado_env::get_max_steps() const { return max_steps; };
+bool eldorado_env::get_render() const { return b_render; };
+bool eldorado_env::get_done() const { return done; };
+const Info &eldorado_env::get_info() const { return *info; };
+
+u_char eldorado_env::get_agent_selection() const { return agent_selection; };
 
 void clear_console() {
-    #ifndef WINDOWS
-        std::system("cls");
-    #else
-        std::system("clear");
-    #endif
+#ifndef WINDOWS
+  std::system("cls");
+#else
+  std::system("clear");
+#endif
 }
-

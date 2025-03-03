@@ -1,0 +1,12 @@
+[build-system]
+requires = ["scikit-build-core", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "eldorado_py"
+version = "0.0.1"
+
+dependencies = ["numpy"]
+
+[tool.scikit-build]
+cmake.args = ["-DCMAKE_CXX_FLAGS=--param destructive-interference-size=64"]
