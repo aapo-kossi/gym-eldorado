@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 execute_process(COMMAND python ${CMAKE_SOURCE_DIR}/sync_version.py)
-project(EldoradoEnv VERSION "0.0.1" LANGUAGES CXX)
+project(CityofGold VERSION "0.0.1" LANGUAGES CXX)
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 message(STATUS "CMAKE_PROGRAM_PATH: ${CMAKE_PROGRAM_PATH}")
@@ -27,7 +27,7 @@ option(ENABLE_PYTHON_BINDINGS "Build Python bindings" ON)
 include_directories(include)
 
 # The main library
-add_library(eldorado_env
+add_library(city_of_gold_env
     src/environment.cpp
     src/map.cpp
     src/player.cpp
@@ -35,19 +35,19 @@ add_library(eldorado_env
     src/geometry.cpp
 )
 
-target_include_directories(eldorado_env PRIVATE include)
+target_include_directories(city_of_gold_env PRIVATE include)
 
 if (MSVC)
-    target_compile_options(eldorado_env PRIVATE /W4)
+    target_compile_options(city_of_gold_env PRIVATE /W4)
 else()
-    target_compile_options(eldorado_env PRIVATE -Wall -Wextra -Wshadow -Wconversion -pedantic)
+    target_compile_options(city_of_gold_env PRIVATE -Wall -Wextra -Wshadow -Wconversion -pedantic)
 endif()
 
 if(ENABLE_TESTS)
     find_package(doctest REQUIRED)
 
     add_executable(test_environment src/tests/test_environment.cpp)
-    target_link_libraries(test_environment PRIVATE eldorado_env doctest::doctest)
+    target_link_libraries(test_environment PRIVATE city_of_gold_env doctest::doctest)
 
     include(CTest)
     enable_testing()
@@ -69,12 +69,12 @@ else()
 endif()
 
 if(sanitize)
-    target_compile_options(eldorado_env PRIVATE -fsanitize=address -fsanitize=undefined -fdiagnostics-color=always)
-    target_link_libraries(eldorado_env PRIVATE -fsanitize=address -fsanitize=undefined)
-    target_link_options(eldorado_env PRIVATE -fsanitize=address -fsanitize=undefined)
+    target_compile_options(city_of_gold_env PRIVATE -fsanitize=address -fsanitize=undefined -fdiagnostics-color=always)
+    target_link_libraries(city_of_gold_env PRIVATE -fsanitize=address -fsanitize=undefined)
+    target_link_options(city_of_gold_env PRIVATE -fsanitize=address -fsanitize=undefined)
 elseif(profile)
     add_executable(profile_environment src/tests/profile.cpp)
-    target_link_libraries(profile_environment PRIVATE eldorado_env)
+    target_link_libraries(profile_environment PRIVATE city_of_gold_env)
 endif()
 
 
@@ -95,11 +95,11 @@ if(ENABLE_PYTHON_BINDINGS)
         target_link_libraries(bindings_ PRIVATE profiler tcmalloc)
     endif()
 
-    target_link_libraries(bindings_ PRIVATE eldorado_env pybind11::module)
+    target_link_libraries(bindings_ PRIVATE city_of_gold_env pybind11::module)
     target_include_directories(bindings_ PRIVATE external)
     set_target_properties(bindings_ PROPERTIES PREFIX "")
     set_target_properties(bindings_ PROPERTIES SUFFIX ".so")
-    set_target_properties(bindings_ PROPERTIES OUTPUT_NAME "eldorado_py")
+    set_target_properties(bindings_ PROPERTIES OUTPUT_NAME "city_of_gold")
     if(MSVC)
         set_target_properties(bindings_ PROPERTIES SUFFIX ".pyd")
     endif()

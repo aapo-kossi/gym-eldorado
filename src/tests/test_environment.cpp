@@ -7,7 +7,7 @@
 // Test: Constructor
 TEST_CASE("eldorado_env constructor initializes correctly") {
 
-  eldorado_env env;
+  cog_env env;
 }
 
 // Test: Reset
@@ -16,7 +16,7 @@ TEST_CASE("eldorado_env reset reinitializes the environment correctly") {
   ActionMask mask{};
   Info info{};
   std::array<float, MAX_N_PLAYERS> rewards{};
-  eldorado_env env;
+  cog_env env;
   env.init(observation, info, rewards, mask);
 
   // Resetting with identical parameters regenerates the same map
@@ -71,7 +71,7 @@ TEST_CASE(
   ActionMask mask{};
   Info info{};
   std::array<float, MAX_N_PLAYERS> rewards{};
-  eldorado_env env;
+  cog_env env;
   env.init(observation, info, rewards, mask);
 
   CHECK_NOTHROW(env.reset(124, 3, 3, Difficulty::EASY, 200, false));
@@ -88,7 +88,7 @@ TEST_CASE(
   ActionMask mask{};
   Info info{};
   std::array<float, MAX_N_PLAYERS> rewards{};
-  eldorado_env env;
+  cog_env env;
   env.init(observation, info, rewards, mask);
   env.reset(54321, 4, 5, Difficulty::MEDIUM, 100, false);
 
@@ -111,7 +111,7 @@ TEST_CASE("eldorado_env correctly handles the game ending") {
   ActionMask mask{};
   Info info{};
   std::array<float, MAX_N_PLAYERS> rewards{};
-  eldorado_env env;
+  cog_env env;
   env.init(observation, info, rewards, mask);
   env.reset(54321, 4, 1, DEFAULT_DIFFICULTY, max_steps, false);
 

@@ -16,7 +16,7 @@ using queue_ptr = typename std::unique_ptr<q_type>;
 
 template <size_t N> class ThreadedRunner {
 public:
-  ThreadedRunner(vec_eldorado_env<N> &envs_, vec_action_sampler<N> &samplers_,
+  ThreadedRunner(vec_cog_env<N> &envs_, vec_action_sampler<N> &samplers_,
                  std::optional<size_t> thread_count = std::nullopt)
       : envs{envs_}, samplers{samplers_},
         action_masks{envs_.get_selected_action_masks()},
@@ -71,7 +71,7 @@ public:
   }
 
   size_t get_n_threads() const { return n_threads; }
-  vec_eldorado_env<N> &get_envs() const { return envs; }
+  vec_cog_env<N> &get_envs() const { return envs; }
   vec_action_sampler<N> &get_samplers() const { return samplers; }
 
   void enqueue(Task task, size_t worker) {
@@ -101,7 +101,7 @@ public:
 
 private:
   size_t n_threads;
-  vec_eldorado_env<N> &envs;
+  vec_cog_env<N> &envs;
   vec_action_sampler<N> &samplers;
 
   const std::array<ActionMask, N> &action_masks;

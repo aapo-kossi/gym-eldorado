@@ -8,7 +8,7 @@
 #include "player.h"
 
 class ELDORADO_API alignas(hardware_destructive_interference_size)
-    eldorado_env {
+    cog_env {
 private:
   unsigned long seed;
   u_char n_players;
@@ -44,8 +44,8 @@ private:
 public:
   bool dead_step;
 
-  eldorado_env();
-  eldorado_env(unsigned long seed_, u_char n_players_, u_char n_pieces_,
+  cog_env();
+  cog_env(unsigned long seed_, u_char n_players_, u_char n_pieces_,
                Difficulty difficulty_, unsigned int max_steps_, bool render_);
   void init(ObsData &observations_, Info &info_,
             std::array<float, MAX_N_PLAYERS> &rewards_, ActionMask &selected_);

@@ -3,7 +3,7 @@ import multiprocessing as mp
 import numpy as np
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
-import eldorado_py
+import city_of_gold
 
 def fit_linear_regression(times, sizes):
     flat_times = times.flatten()
@@ -71,12 +71,12 @@ def visualize_comparisons(results, sizes, steps):
     plt.show()
 
 def run_test(steps, n_envs, seed, threaded=False, threads=None, sync=False):
-    env_cls = eldorado_py.get_vec_env(n_envs)
-    sampler_cls = eldorado_py.get_vec_sampler(n_envs)
+    env_cls = city_of_gold.get_vec_env(n_envs)
+    sampler_cls = city_of_gold.get_vec_sampler(n_envs)
     envs = env_cls()
     samplers = sampler_cls(seed)
     if threaded:
-        runner_cls = eldorado_py.get_runner(n_envs)
+        runner_cls = city_of_gold.get_runner(n_envs)
         runner = runner_cls(envs, samplers, threads)
         if sync:
             step_fun = lambda _: runner.step_sync()
@@ -92,7 +92,7 @@ def run_test(steps, n_envs, seed, threaded=False, threads=None, sync=False):
     # as it only affects functionality with multithreading on
     assert not ((not threaded) and sync)
 
-    envs.reset(seed, 4, 3, eldorado_py.Difficulty.EASY, 100000, False)
+    envs.reset(seed, 4, 3, city_of_gold.Difficulty.EASY, 100000, False)
     actions = samplers.get_actions()
 
     next_agents = np.expand_dims(envs.agent_selection, 1)  # reference, updates internally

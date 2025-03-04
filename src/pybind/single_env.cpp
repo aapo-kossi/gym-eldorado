@@ -10,26 +10,26 @@
 namespace py = pybind11;
 
 void bind_single_env(py::module_ &m) {
-  py::class_<eldorado_env>(m, "eldorado_env")
+  py::class_<cog_env>(m, "cog_env")
       .def(py::init<>())
       .def(py::init<unsigned long, u_char, u_char, Difficulty, unsigned int,
                     bool>())
       .def_property_readonly("agent_selection",
-                             &eldorado_env::get_agent_selection)
-      .def("init", &eldorado_env::init, py::arg("observations"),
+                             &cog_env::get_agent_selection)
+      .def("init", &cog_env::init, py::arg("observations"),
            py::arg("info"), py::arg("rewards"),
            py::arg("selected_action_masks"))
-      .def("reset", (void(eldorado_env::*)()) & eldorado_env::reset)
-      .def("reset", (void(eldorado_env::*)(unsigned long, u_char, u_char,
+      .def("reset", (void(cog_env::*)()) & cog_env::reset)
+      .def("reset", (void(cog_env::*)(unsigned long, u_char, u_char,
                                            Difficulty, unsigned int, bool)) &
-                        eldorado_env::reset)
-      .def("step", &eldorado_env::step)
-      .def("render", &eldorado_env::render)
-      .def("get_map", &eldorado_env::get_map,
+                        cog_env::reset)
+      .def("step", &cog_env::step)
+      .def("render", &cog_env::render)
+      .def("get_map", &cog_env::get_map,
            py::return_value_policy::reference)
-      .def("get_seed", &eldorado_env::get_seed)
-      .def("get_n_players", &eldorado_env::get_n_players)
-      .def("get_done", &eldorado_env::get_done);
+      .def("get_seed", &cog_env::get_seed)
+      .def("get_n_players", &cog_env::get_n_players)
+      .def("get_done", &cog_env::get_done);
 
   py::class_<ObsData>(m, "ObsData")
       .def_readonly("shared", &ObsData::shared,

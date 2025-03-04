@@ -1,5 +1,5 @@
 from asv_runner.benchmarks.mark import SkipNotImplemented
-import eldorado_py
+import city_of_gold
 
 N_STEPS = 10_000
 
@@ -16,17 +16,17 @@ class TimeEnvs:
         if ((mode == "sequential") and (threads > 1)): raise NotImplementedError()
         self.threaded = mode != "sequential"
         synced = mode == "sync"
-        env_cls = eldorado_py.get_vec_env(n)
-        sampler_cls = eldorado_py.get_vec_sampler(n)
+        env_cls = city_of_gold.get_vec_env(n)
+        sampler_cls = city_of_gold.get_vec_sampler(n)
         envs = env_cls()
-        envs.reset(seed, 4, 3, eldorado_py.Difficulty.EASY, 100000, False)
+        envs.reset(seed, 4, 3, city_of_gold.Difficulty.EASY, 100000, False)
         self.envs = envs
         samplers = sampler_cls(seed)
         self.samplers = samplers
         self.actions = samplers.get_actions()
         self.am = envs.selected_action_masks
         if self.threaded:
-            runner = eldorado_py.get_runner(n)(envs, samplers, threads)
+            runner = city_of_gold.get_runner(n)(envs, samplers, threads)
             self.sample = runner.sample
             if synced:
                 self.step_func = runner.step_sync

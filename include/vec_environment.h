@@ -7,7 +7,7 @@
 /* The classes defined here have ownership of the data structures
  * used by the game and the RL algorithms on the cpu side */
 
-template <size_t N> class vec_eldorado_env {
+template <size_t N> class vec_cog_env {
 private:
   std::array<ObsData, N> observations;
   std::array<std::array<float, MAX_N_PLAYERS>, N> rewards;
@@ -15,12 +15,12 @@ private:
   std::array<u_char, N> agent_selections;
   std::array<ActionMask, N> selected_action_masks;
   std::array<Info, N> infos;
-  std::array<eldorado_env, N> environments;
+  std::array<cog_env, N> environments;
   size_t num_envs = N;
   size_t num_players;
 
 public:
-  vec_eldorado_env()
+  vec_cog_env()
       : observations{}, rewards{}, dones{}, infos{}, agent_selections{},
         num_players(MAX_N_PLAYERS) {
     for (size_t i = 0; i < N; i++) {
@@ -51,7 +51,7 @@ public:
   }
 
   void step_single(const ActionData &act, size_t i) {
-    eldorado_env &env = environments[i];
+    cog_env &env = environments[i];
     env.step(act);
     dones[i] = env.get_done();
     if (dones[i]) {

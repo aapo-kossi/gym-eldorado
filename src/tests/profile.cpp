@@ -12,7 +12,7 @@ int main() {
   Info info{};
   ActionMask mask{};
   std::array<float, MAX_N_PLAYERS> rewards{};
-  eldorado_env env;
+  cog_env env;
   env.init(observation, info, rewards, mask);
   env.reset(54321, 4, 1, DEFAULT_DIFFICULTY, max_steps, false);
   std::vector<Info> finished_episodes;

@@ -23,7 +23,7 @@ extern std::string_view vec_runner_cls;
 
 template <size_t N> class ELDORADO_API py_vec_env {
 private:
-  vec_eldorado_env<N> env;
+  vec_cog_env<N> env;
   constexpr const static std::array<ptrdiff_t, 3> map_strides = {
       GRIDSIZE, GRIDSIZE, N_MAP_FEATURES};
   constexpr const static std::array<ptrdiff_t, 1> shop_strides = {
@@ -100,7 +100,7 @@ public:
     return create_numpy_view(&masks_array[0], n_envs_stride);
   }
 
-  vec_eldorado_env<N> &get_env() { return env; }
+  vec_cog_env<N> &get_env() { return env; }
 };
 
 template <size_t N> class ELDORADO_API py_vec_action_sampler {

@@ -2,7 +2,7 @@
 #include "pybind/common.h"
 #include "pybind/vectorized.h"
 
-PYBIND11_MODULE(eldorado_py, m) {
+PYBIND11_MODULE(city_of_gold, m) {
   m.doc() = "Python bindings for The Quest for El Dorado C++ environment";
 
   PYBIND11_NUMPY_DTYPE(DeckObs, draw, hand, active, played, discard);

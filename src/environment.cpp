@@ -7,14 +7,14 @@
 #include <ostream>
 #include <random>
 
-eldorado_env::eldorado_env()
+cog_env::cog_env()
     : seed(std::random_device()()), n_players(MAX_N_PLAYERS),
       n_pieces(DEFAULT_N_PIECES), difficulty(DEFAULT_DIFFICULTY),
       max_steps(MAX_STEPS), b_render(false), rng(seed), observations(nullptr),
       info(nullptr), map(), shop(), shop_free(false),
       special_function(nullptr) {};
 
-eldorado_env::eldorado_env(unsigned long seed_, u_char n_players_,
+cog_env::cog_env(unsigned long seed_, u_char n_players_,
                            u_char n_pieces_, Difficulty difficulty_,
                            unsigned int max_steps_, bool render)
     : seed(seed_), n_players(n_players_), n_pieces(n_pieces_),
@@ -22,7 +22,7 @@ eldorado_env::eldorado_env(unsigned long seed_, u_char n_players_,
       rng(seed), observations(nullptr), info(nullptr), map(), shop(),
       shop_free(false), special_function(nullptr) {};
 
-void eldorado_env::init(ObsData &observations_, Info &info_,
+void cog_env::init(ObsData &observations_, Info &info_,
                         std::array<float, MAX_N_PLAYERS> &rewards_,
                         ActionMask &selected_) {
   observations = &observations_;
@@ -39,7 +39,7 @@ void eldorado_env::init(ObsData &observations_, Info &info_,
   }
 }
 
-void eldorado_env::reset() {
+void cog_env::reset() {
 
   agent_selection = 0;
   observations->shared.phase = static_cast<u_char>(TurnPhase::INACTIVE);
@@ -63,7 +63,7 @@ void eldorado_env::reset() {
       observations->player_data[agent_selection].action_mask;
 };
 
-void eldorado_env::reset(unsigned long seed_, u_char n_players_,
+void cog_env::reset(unsigned long seed_, u_char n_players_,
                          u_char n_pieces_, Difficulty difficulty_,
                          unsigned int max_steps_, bool render_) {
   n_players = n_players_;
@@ -76,7 +76,7 @@ void eldorado_env::reset(unsigned long seed_, u_char n_players_,
   reset();
 }
 
-void eldorado_env::next_agent() {
+void cog_env::next_agent() {
   Player &p = players[agent_selection];
   p.end_turn();
   agent_selection += 1;
@@ -88,7 +88,7 @@ void eldorado_env::next_agent() {
   turn_counter++;
 }
 
-void eldorado_env::step(const ActionData &action) {
+void cog_env::step(const ActionData &action) {
   dead_step = done;
   if (dead_step) {
     return;
@@ -223,7 +223,7 @@ void eldorado_env::step(const ActionData &action) {
   }
 };
 
-void eldorado_env::maybe_cycle_phase() {
+void cog_env::maybe_cycle_phase() {
   if (observations->shared.phase == static_cast<u_char>(TurnPhase::INACTIVE)) {
     observations->shared.phase = static_cast<u_char>(
         ::cycle_phase(static_cast<TurnPhase>(observations->shared.phase)));
@@ -236,12 +236,12 @@ void eldorado_env::maybe_cycle_phase() {
 // This shop behaviour naturally limits the player to buying only
 // a maximum of a single card per turn
 // Special actions handle their turn phase logic independently
-inline void eldorado_env::cycle_phase() {
+inline void cog_env::cycle_phase() {
   observations->shared.phase = static_cast<u_char>(
       ::cycle_phase(static_cast<TurnPhase>(observations->shared.phase)));
 }
 
-void eldorado_env::maybe_end_turn() {
+void cog_env::maybe_end_turn() {
   Player &player = players[agent_selection];
   if (player.has_won || (observations->shared.phase ==
                          static_cast<u_char>(TurnPhase::INACTIVE))) {
@@ -249,7 +249,7 @@ void eldorado_env::maybe_end_turn() {
   }
 }
 
-void eldorado_env::update_observation(u_char agent) {
+void cog_env::update_observation(u_char agent) {
 
   ActionMask &am = observations->player_data[agent].action_mask;
   am.move.fill(false);
@@ -278,7 +278,7 @@ void eldorado_env::update_observation(u_char agent) {
   }
 };
 
-float eldorado_env::get_reward(u_char agent) {
+float cog_env::get_reward(u_char agent) {
   float n_winners = 0;
   for (auto player : players) {
     n_winners += player.has_won;
@@ -287,7 +287,7 @@ float eldorado_env::get_reward(u_char agent) {
   return n_players * players[agent].has_won - n_winners;
 };
 
-void eldorado_env::render() {
+void cog_env::render() {
   if (b_render) {
     clear_console();
     if (!done) {
@@ -308,18 +308,18 @@ void eldorado_env::render() {
         << std::endl;
   }
 }
-const Map &eldorado_env::get_map() const { return map; };
-unsigned long eldorado_env::get_seed() const { return seed; };
-u_char eldorado_env::get_n_players() const { return n_players; };
-const Player &eldorado_env::get_player(u_char n) const { return players[n]; };
-u_char eldorado_env::get_n_pieces() const { return n_pieces; };
-Difficulty eldorado_env::get_difficulty() const { return difficulty; };
-unsigned int eldorado_env::get_max_steps() const { return max_steps; };
-bool eldorado_env::get_render() const { return b_render; };
-bool eldorado_env::get_done() const { return done; };
-const Info &eldorado_env::get_info() const { return *info; };
+const Map &cog_env::get_map() const { return map; };
+unsigned long cog_env::get_seed() const { return seed; };
+u_char cog_env::get_n_players() const { return n_players; };
+const Player &cog_env::get_player(u_char n) const { return players[n]; };
+u_char cog_env::get_n_pieces() const { return n_pieces; };
+Difficulty cog_env::get_difficulty() const { return difficulty; };
+unsigned int cog_env::get_max_steps() const { return max_steps; };
+bool cog_env::get_render() const { return b_render; };
+bool cog_env::get_done() const { return done; };
+const Info &cog_env::get_info() const { return *info; };
 
-u_char eldorado_env::get_agent_selection() const { return agent_selection; };
+u_char cog_env::get_agent_selection() const { return agent_selection; };
 
 void clear_console() {
 #ifndef WINDOWS

@@ -3,10 +3,22 @@ requires = ["scikit-build-core", "pybind11", "toml"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "eldorado_py"
+name = "city_of_gold"
 version = "0.0.1"
+authors = [
+    {name = "Aapo Kössi", email = "aapo.ilmari.kossi@cern.ch"},
+]
+description = "A board game reinforcement learning enviroment in C++"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 
 dependencies = ["numpy"]
+
+[project.urls]
+homepage = "https://github.com/aapo-kossi/city-of-gold"
+issues = "https://github.com/aapo-kossi/city-of-gold/issues"
 
 [tool.scikit-build]
 cmake.args = ["-DCMAKE_CXX_FLAGS=--param destructive-interference-size=64"]

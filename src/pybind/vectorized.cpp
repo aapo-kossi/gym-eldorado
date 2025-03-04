@@ -1,7 +1,7 @@
 #include "pybind/vectorized.h"
 #include <string_view>
 
-std::string_view vec_env_cls = "vec_eldorado_env_";
+std::string_view vec_env_cls = "vec_cog_env_";
 std::string_view vec_sampler_cls = "vec_sampler";
 std::string_view vec_runner_cls = "vec_runner";
 
