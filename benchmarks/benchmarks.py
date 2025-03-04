@@ -1,9 +1,10 @@
-from asv_runner.benchmarks.mark import skip_params_if
+from asv_runner.benchmarks.mark import SkipNotImplemented
 import eldorado_py
 
 N_STEPS = 10_000
 
 class TimeEnvs:
+    timeout = 300
     params = (
         [1,2,3,4,5,6,7,8,16,32,64,128,256],
         [12345],
@@ -13,7 +14,7 @@ class TimeEnvs:
 
     def setup(self, n, seed, threads, mode):
         if ((mode == "sequential") and (threads > 1)): raise NotImplementedError()
-        threaded = mode != "sequential"
+        self.threaded = mode != "sequential"
         synced = mode == "sync"
         env_cls = eldorado_py.get_vec_env(n)
         sampler_cls = eldorado_py.get_vec_sampler(n)
@@ -24,7 +25,7 @@ class TimeEnvs:
         self.samplers = samplers
         self.actions = samplers.get_actions()
         self.am = envs.selected_action_masks
-        if threaded:
+        if self.threaded:
             runner = eldorado_py.get_runner(n)(envs, samplers, threads)
             self.sample = runner.sample
             if synced:
@@ -55,6 +56,8 @@ class TimeEnvs:
         self.end_fun()
 
     def time_reset(self, *_):
+        if self.threaded:
+            raise SkipNotImplemented
         for _ in range(N_STEPS//10):
             self.reset()
 
