@@ -1,5 +1,6 @@
 #pragma once
 
+#include "api.h"
 #include "atomic_queues.hpp" // jdz atomic queues
 #include "vec_environment.h"
 #include "vec_sampler.h"

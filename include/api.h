@@ -9,13 +9,13 @@
 #include "geometry.h"
 
 #ifdef _WIN32
-    #ifdef ELDORADO_LIBRARY_EXPORTS
-        #define ELDORADO_API __declspec(dllexport)
+    #ifdef COG_LIBRARY_EXPORTS
+        #define CITYOFGOLD_API __declspec(dllexport)
     #else
-        #define ELDORADO_API __declspec(dllimport)
+        #define CITYOFGOLD_API __declspec(dllimport)
     #endif
 #else
-    #define ELDORADO_API __attribute__((visibility("default")))
+    #define CITYOFGOLD_API __attribute__((visibility("default")))
 #endif
 
 #ifdef __cpp_lib_hardware_interference_size
@@ -64,7 +64,7 @@ bool operator!=(const AlignedAllocator<T, A> &,
   return false;
 }
 
-struct ELDORADO_API DeckObs {
+struct CITYOFGOLD_API DeckObs {
   std::array<u_char, N_CARDTYPES> draw;
   std::array<u_char, N_CARDTYPES> hand;
   std::array<u_char, N_CARDTYPES> active;
@@ -85,14 +85,14 @@ typedef std::array<std::array<std::array<u_char, N_MAP_FEATURES>, GRIDSIZE>,
                    GRIDSIZE>
     MapObservation;
 
-struct ELDORADO_API SharedObservation {
+struct CITYOFGOLD_API SharedObservation {
   MapObservation map;
   u_char phase;
   std::array<float, N_RESOURCETYPES> current_resources;
   std::array<u_char, N_BUYABLETYPES> shop;
 };
 
-struct ELDORADO_API alignas(hardware_destructive_interference_size) ActionMask {
+struct CITYOFGOLD_API alignas(hardware_destructive_interference_size) ActionMask {
   std::array<bool, N_CARDTYPES + 1> play;
   std::array<bool, N_CARDTYPES + 1> play_special;
   std::array<bool, N_CARDTYPES + 1> remove;
@@ -118,17 +118,17 @@ struct ELDORADO_API alignas(hardware_destructive_interference_size) ActionMask {
   }
 };
 
-struct ELDORADO_API PlayerData {
+struct CITYOFGOLD_API PlayerData {
   DeckObs obs;
   ActionMask action_mask;
 };
 
-struct ELDORADO_API alignas(hardware_destructive_interference_size) ObsData {
+struct CITYOFGOLD_API alignas(hardware_destructive_interference_size) ObsData {
   SharedObservation shared;
   std::array<PlayerData, MAX_N_PLAYERS> player_data;
 };
 
-struct ELDORADO_API alignas(hardware_destructive_interference_size) ActionData {
+struct CITYOFGOLD_API alignas(hardware_destructive_interference_size) ActionData {
   u_char play;
   u_char play_special;
   u_char remove;
@@ -143,7 +143,7 @@ struct ELDORADO_API alignas(hardware_destructive_interference_size) ActionData {
   };
 };
 
-struct ELDORADO_API AgentInfo {
+struct CITYOFGOLD_API AgentInfo {
   u_char steps_taken;
   float returns;
   unsigned int travelled_hexes;
@@ -155,7 +155,7 @@ struct ELDORADO_API AgentInfo {
   unsigned int n_card_uses;
 };
 
-struct ELDORADO_API alignas(hardware_destructive_interference_size) Info {
+struct CITYOFGOLD_API alignas(hardware_destructive_interference_size) Info {
   unsigned int total_length;
   std::array<AgentInfo, MAX_N_PLAYERS> agent_infos;
 };

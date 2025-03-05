@@ -4,6 +4,16 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#ifdef _WIN32
+    #ifdef BINDINGS_LIBRARY_EXPORTS
+        #define BINDINGS_API __declspec(dllexport)
+    #else
+        #define BINDINGS_API __declspec(dllimport)
+    #endif
+#else
+    #define BINDINGS_API __attribute__((visibility("default")))
+#endif
+
 namespace py = pybind11;
 
 template <typename Class, typename T, size_t N>

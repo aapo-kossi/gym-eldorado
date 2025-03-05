@@ -21,7 +21,7 @@ extern std::string_view vec_env_cls;
 extern std::string_view vec_sampler_cls;
 extern std::string_view vec_runner_cls;
 
-template <size_t N> class ELDORADO_API py_vec_env {
+template <size_t N> class py_vec_env {
 private:
   vec_cog_env<N> env;
   constexpr const static std::array<ptrdiff_t, 3> map_strides = {
@@ -103,7 +103,7 @@ public:
   vec_cog_env<N> &get_env() { return env; }
 };
 
-template <size_t N> class ELDORADO_API py_vec_action_sampler {
+template <size_t N> class py_vec_action_sampler {
 private:
   constexpr const static std::array<ptrdiff_t, 1> n_envs_stride = {N};
   vec_action_sampler<N> samplers;
@@ -125,7 +125,7 @@ public:
   vec_action_sampler<N> &get_sampler() { return samplers; }
 };
 
-template <size_t N> class ELDORADO_API py_threaded_runner {
+template <size_t N> class py_threaded_runner {
 private:
   py_vec_env<N> &envs;
   py_vec_action_sampler<N> &samplers;

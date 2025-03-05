@@ -7,7 +7,7 @@
 #include "map.h"
 #include "player.h"
 
-class ELDORADO_API alignas(hardware_destructive_interference_size)
+class CITYOFGOLD_API alignas(hardware_destructive_interference_size)
     cog_env {
 private:
   uint32_t seed;

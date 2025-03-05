@@ -18,7 +18,7 @@ int main() {
   std::vector<Info> finished_episodes;
 
   for (uint32_t i = 0; i < max_steps; i++) {
-    ushort current_agent = env.get_agent_selection();
+    u_char current_agent = env.get_agent_selection();
     ActionData act =
         sampler.sample(observation.player_data[current_agent].action_mask);
     env.step(act);

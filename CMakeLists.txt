@@ -58,6 +58,7 @@ add_library(city_of_gold_env
     src/geometry.cpp
 )
 
+target_compile_definitions(city_of_gold_env PRIVATE COG_LIBRARY_EXPORTS)
 target_include_directories(city_of_gold_env PRIVATE include)
 
 # Tests
@@ -65,6 +66,7 @@ if(ENABLE_TESTS)
     find_package(doctest REQUIRED)
 
     add_executable(test_environment src/tests/test_environment.cpp)
+    target_compile_definitions(test_environment PRIVATE COG_LIBRARY_EXPORTS)
     target_link_libraries(test_environment PRIVATE city_of_gold_env doctest::doctest)
 
     include(CTest)
@@ -105,6 +107,7 @@ endif()
 
 add_executable(profile_environment src/tests/profile.cpp)
 target_link_libraries(profile_environment PRIVATE city_of_gold_env)
+target_compile_definitions(profile_environment PRIVATE COG_LIBRARY_EXPORTS)
 
 if(ENABLE_PYTHON_BINDINGS)
 
@@ -118,8 +121,10 @@ if(ENABLE_PYTHON_BINDINGS)
     find_package(pybind11 REQUIRED)
 
     add_library(bindings_ MODULE src/pybind/common.cpp src/pybind/single_env.cpp src/pybind/vectorized.cpp)
+    target_compile_definitions(bindings_ PRIVATE COG_LIBRARY_EXPORTS)
+    target_compile_definitions(bindings_ PRIVATE BINDINGS_LIBRARY_EXPORTS)
 
-    # link gperftools deps conditionally
+    # link gperftools deps for Profile configuration
     target_link_libraries(bindings_ PRIVATE "$<$<CONFIG:Profile>:profiler;tcmalloc>")
 
     target_link_libraries(bindings_ PRIVATE city_of_gold_env pybind11::module)
