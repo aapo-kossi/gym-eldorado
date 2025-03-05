@@ -9,7 +9,7 @@
 - Environment data exposed as numpy structured array views
 - Zero-copy action and observation arrays
 - Logic fully implemented in C++ for high performance
-- [Benchmarks](https://aapo-kossi.github.io/gym-eldorado) using [asv](https://github.com/airspeed-velocity/asv).
+- [Benchmarks](https://aapo-kossi.github.io/city-of-gold/) using [asv](https://github.com/airspeed-velocity/asv).
 - Portable CMake build configuration and easy installation with uv or pip
 
 ## Game mechanics
