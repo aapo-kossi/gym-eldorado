@@ -78,7 +78,7 @@ private:
 inline TurnPhase cycle_phase(TurnPhase previous) {
   u_char i_previous = static_cast<u_char>(previous);
   u_char i_new = (i_previous + 1);
-  u_char i_end = static_cast<ushort>(TurnPhase::MAX_PHASE);
+  u_char i_end = static_cast<u_char>(TurnPhase::MAX_PHASE);
   i_new -= static_cast<u_char>(i_end * (i_new >= i_end));
   return TurnPhase(i_new);
 }

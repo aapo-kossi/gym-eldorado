@@ -17,12 +17,20 @@ if (CMAKE_GENERATOR MATCHES "Ninja Multi-Config")
     set(CMAKE_DEFAULT_BUILD_TYPE "Release")
 endif()
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+    add_compile_options(--param=destructive-interference-size=64)
+endif()
+
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -flto=auto -pg -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -flto=auto -march=native -mtune=native -DNDEBUG")
 set(CMAKE_CXX_FLAGS_PROFILE "-O2 -flto=auto -march=native -mtune=native -g -DNDEBUG")
 
 option(ENABLE_TESTS "Enable building and running tests" ON)
 option(ENABLE_PYTHON_BINDINGS "Build Python bindings" ON)
+
+if (DEFINED ENV{CIBUILDWHEEL})
+    set(ENABLE_TESTS OFF)
+endif()
 
 include_directories(include)
 
@@ -86,7 +94,7 @@ if(ENABLE_PYTHON_BINDINGS)
       LANGUAGES CXX
     )
 
-    find_package(Python COMPONENTS Interpreter Development REQUIRED)
+    find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
     find_package(pybind11 REQUIRED)
 
     add_library(bindings_ MODULE src/pybind/common.cpp src/pybind/single_env.cpp src/pybind/vectorized.cpp)
@@ -97,12 +105,8 @@ if(ENABLE_PYTHON_BINDINGS)
 
     target_link_libraries(bindings_ PRIVATE city_of_gold_env pybind11::module)
     target_include_directories(bindings_ PRIVATE external)
-    set_target_properties(bindings_ PROPERTIES PREFIX "")
-    set_target_properties(bindings_ PROPERTIES SUFFIX ".so")
-    set_target_properties(bindings_ PROPERTIES OUTPUT_NAME "city_of_gold")
-    if(MSVC)
-        set_target_properties(bindings_ PROPERTIES SUFFIX ".pyd")
-    endif()
+    set_target_properties(bindings_ PROPERTIES PREFIX "" OUTPUT_NAME "city_of_gold")
+    set_target_properties(bindings_ PROPERTIES SUFFIX "${CMAKE_SHARED_MODULE_SUFFIX}")
 
     install(TARGETS bindings_ LIBRARY DESTINATION .)
 

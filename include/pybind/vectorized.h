@@ -230,7 +230,7 @@ template <size_t N> void bind_runners(py::module_ &m) {
   bind_vec_sampler<N>(m);
   bind_vec_env<N>(m);
   bind_runner<N>(m);
-  if (N >= 16) {
+  if constexpr ( N >= 16) {
     bind_runners<N / 2>(m);
   } else {
     bind_runners<N - 1>(m);
