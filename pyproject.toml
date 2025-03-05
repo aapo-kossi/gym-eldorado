@@ -21,7 +21,6 @@ homepage = "https://github.com/aapo-kossi/city-of-gold"
 issues = "https://github.com/aapo-kossi/city-of-gold/issues"
 
 [tool.cibuildwheel]
-CIBW_ENVIRONMENT = { "CMAKE_OSX_DEPLOYMENT_TARGET" = "10.13" }
 
 manylinux-x86_64-image = "manylinux_2_28"
 manylinux-aarch64-image = "manylinux_2_28"
@@ -32,3 +31,5 @@ manylinux-pypy_x86_64-image = "manylinux_2_28"
 manylinux-pypy_aarch64-image = "manylinux_2_28"
 skip = ["*-manylinux_i686"]
 
+[tool.cibuildwheel.macos]
+environment = { "MACOSX_DEPLOYMENT_TARGET" = "10.13" }
