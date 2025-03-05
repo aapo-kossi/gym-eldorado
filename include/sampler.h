@@ -6,7 +6,7 @@
 
 struct alignas(hardware_destructive_interference_size) action_sampler {
   std::default_random_engine rng;
-  action_sampler(unsigned long seed = 42) : rng(seed) {};
+  action_sampler(uint32_t seed = 42) : rng(seed) {};
   std::vector<u_char> valid_buffer;
 
   void set_seed(size_t s) { rng.seed(s); }

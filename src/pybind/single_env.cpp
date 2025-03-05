@@ -12,7 +12,7 @@ namespace py = pybind11;
 void bind_single_env(py::module_ &m) {
   py::class_<cog_env>(m, "cog_env")
       .def(py::init<>())
-      .def(py::init<unsigned long, u_char, u_char, Difficulty, unsigned int,
+      .def(py::init<uint32_t, u_char, u_char, Difficulty, unsigned int,
                     bool>())
       .def_property_readonly("agent_selection",
                              &cog_env::get_agent_selection)
@@ -20,7 +20,7 @@ void bind_single_env(py::module_ &m) {
            py::arg("info"), py::arg("rewards"),
            py::arg("selected_action_masks"))
       .def("reset", (void(cog_env::*)()) & cog_env::reset)
-      .def("reset", (void(cog_env::*)(unsigned long, u_char, u_char,
+      .def("reset", (void(cog_env::*)(uint32_t, u_char, u_char,
                                            Difficulty, unsigned int, bool)) &
                         cog_env::reset)
       .def("step", &cog_env::step)

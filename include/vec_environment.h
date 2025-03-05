@@ -35,7 +35,7 @@ public:
     }
   }
 
-  void reset(unsigned long seed, u_char n_players, u_char n_pieces,
+  void reset(uint32_t seed, u_char n_players, u_char n_pieces,
              Difficulty difficulty, unsigned int max_steps, bool render) {
     for (size_t i = 0; i < N; i++) {
       environments[i].reset(seed + i, n_players, n_pieces, difficulty,

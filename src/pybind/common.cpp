@@ -23,7 +23,7 @@ PYBIND11_MODULE(city_of_gold, m) {
   constexpr size_t max_envs = 256;
 
   py::class_<action_sampler>(m, "action_sampler")
-      .def(py::init<unsigned long>(), py::arg("seed"))
+      .def(py::init<uint32_t>(), py::arg("seed"))
       .def("sample", &action_sampler::sample);
 
   bind_runners<max_envs>(m);

@@ -10,7 +10,7 @@
 class ELDORADO_API alignas(hardware_destructive_interference_size)
     cog_env {
 private:
-  unsigned long seed;
+  uint32_t seed;
   u_char n_players;
   u_char n_pieces;
   Difficulty difficulty;
@@ -45,13 +45,13 @@ public:
   bool dead_step;
 
   cog_env();
-  cog_env(unsigned long seed_, u_char n_players_, u_char n_pieces_,
+  cog_env(uint32_t seed_, u_char n_players_, u_char n_pieces_,
                Difficulty difficulty_, unsigned int max_steps_, bool render_);
   void init(ObsData &observations_, Info &info_,
             std::array<float, MAX_N_PLAYERS> &rewards_, ActionMask &selected_);
 
   void reset();
-  void reset(unsigned long seed_, u_char n_players_, u_char n_pieces_,
+  void reset(uint32_t seed_, u_char n_players_, u_char n_pieces_,
              Difficulty difficulty_, unsigned int max_steps_, bool render_);
 
   void step(const ActionData &action);
@@ -59,7 +59,7 @@ public:
   void render();
 
   const Map &get_map() const;
-  unsigned long get_seed() const;
+  uint32_t get_seed() const;
   u_char get_n_players() const;
   const Player &get_player(u_char n) const;
   u_char get_n_pieces() const;

@@ -6,7 +6,7 @@
 
 template <size_t N> class vec_action_sampler {
 public:
-  vec_action_sampler(unsigned long seed = 42) : samplers{}, actions{} {
+  vec_action_sampler(uint32_t seed = 42) : samplers{}, actions{} {
     for (size_t i = 0; i < N; i++) {
       samplers[i].set_seed(seed + i);
     }

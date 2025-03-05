@@ -14,7 +14,7 @@ cog_env::cog_env()
       info(nullptr), map(), shop(), shop_free(false),
       special_function(nullptr) {};
 
-cog_env::cog_env(unsigned long seed_, u_char n_players_,
+cog_env::cog_env(uint32_t seed_, u_char n_players_,
                            u_char n_pieces_, Difficulty difficulty_,
                            unsigned int max_steps_, bool render)
     : seed(seed_), n_players(n_players_), n_pieces(n_pieces_),
@@ -63,7 +63,7 @@ void cog_env::reset() {
       observations->player_data[agent_selection].action_mask;
 };
 
-void cog_env::reset(unsigned long seed_, u_char n_players_,
+void cog_env::reset(uint32_t seed_, u_char n_players_,
                          u_char n_pieces_, Difficulty difficulty_,
                          unsigned int max_steps_, bool render_) {
   n_players = n_players_;
@@ -309,7 +309,7 @@ void cog_env::render() {
   }
 }
 const Map &cog_env::get_map() const { return map; };
-unsigned long cog_env::get_seed() const { return seed; };
+uint32_t cog_env::get_seed() const { return seed; };
 u_char cog_env::get_n_players() const { return n_players; };
 const Player &cog_env::get_player(u_char n) const { return players[n]; };
 u_char cog_env::get_n_pieces() const { return n_pieces; };

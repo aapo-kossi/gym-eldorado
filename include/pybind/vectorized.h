@@ -51,7 +51,7 @@ public:
 
   void reset() { env.reset(); }
 
-  void reset(unsigned long seed, u_char n_players, u_char n_pieces,
+  void reset(uint32_t seed, u_char n_players, u_char n_pieces,
              Difficulty difficulty, unsigned int max_steps, bool render) {
     env.reset(seed, n_players, n_pieces, difficulty, max_steps, render);
   }
@@ -165,7 +165,7 @@ template <size_t N> void bind_vec_env(py::module_ &m) {
       .def(py::init())
       .def("reset", py::overload_cast<>(&py_vec_env<N>::reset))
       .def("reset",
-           py::overload_cast<unsigned long, u_char, u_char, Difficulty,
+           py::overload_cast<uint32_t, u_char, u_char, Difficulty,
                              unsigned int, bool>(&py_vec_env<N>::reset))
       .def("step", &py_vec_env<N>::step, py::arg("actions"))
       .def_property_readonly("observations", &py_vec_env<N>::observe,
@@ -193,7 +193,7 @@ template <size_t N> void bind_vec_sampler(py::module_ &m) {
                  seed.value_or(std::random_device{}()));
            }),
            py::arg("seed") = py::none())
-      /*.def(py::init<py::array_t<unsigned long>>(), py::arg("seeds"))*/
+      /*.def(py::init<py::array_t<uint32_t>>(), py::arg("seeds"))*/
       .def("get_actions", &py_vec_action_sampler<N>::get_actions,
            py::return_value_policy::reference_internal)
       .def("sample", &py_vec_action_sampler<N>::sample, py::arg("action_mask"));
