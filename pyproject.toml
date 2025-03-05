@@ -20,5 +20,13 @@ dependencies = ["numpy"]
 homepage = "https://github.com/aapo-kossi/city-of-gold"
 issues = "https://github.com/aapo-kossi/city-of-gold/issues"
 
-[tool.scikit-build]
-cmake.args = ["-DCMAKE_CXX_FLAGS=--param destructive-interference-size=64"]
+[tool.cibuildwheel]
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+manylinux-armv7l-image = "manylinux_2_31"
+manylinux-ppc64le-image = "manylinux_2_28"
+manylinux-s390x-image = "manylinux_2_28"
+manylinux-pypy_x86_64-image = "manylinux_2_28"
+manylinux-pypy_aarch64-image = "manylinux_2_28"
+skip = ["*-manylinux_i686"]
+
