@@ -109,7 +109,7 @@ private:
   vec_action_sampler<N> samplers;
 
 public:
-  py_vec_action_sampler(size_t seed) : samplers{seed} {}
+  py_vec_action_sampler(uint32_t seed) : samplers{seed} {}
   py::array_t<ActionData> get_actions() {
     const std::array<ActionData, N> &act_arr = samplers.get_actions();
     return create_numpy_view(&act_arr[0], n_envs_stride);

@@ -32,14 +32,6 @@ if (DEFINED ENV{CIBUILDWHEEL})
     set(ENABLE_TESTS OFF)
 endif()
 
-# macOS configuration
-if(APPLE)
-    if(NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum macOS version" FORCE)
-    endif()
-endif()
-
-
 include_directories(include)
 
 # The main library
