@@ -5,6 +5,9 @@
 #include "vec_sampler.h"
 #include <optional>
 #include <thread>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 constexpr size_t Q_SIZE = 256;
 

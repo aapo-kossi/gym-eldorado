@@ -7,24 +7,38 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
+# Handle multi-configuration generators
 if (DEFINED CMAKE_CONFIGURATION_TYPES)
-    if (DEFINED ENV{CI})
+    if (DEFINED ENV{CIBUILDWHEEL})
         set(CMAKE_CONFIGURATION_TYPES "Release")
     else()
-        set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile")
+        set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile;Optimized")
     endif()
 endif()
+
 if (CMAKE_GENERATOR MATCHES "Ninja Multi-Config")
     set(CMAKE_DEFAULT_BUILD_TYPE "Release")
 endif()
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
-    add_compile_options(--param=destructive-interference-size=64)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        add_compile_options(--param=destructive-interference-size=64)
+    endif()
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -flto=auto -pg -g")
-set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -flto=auto -march=native -mtune=native -DNDEBUG")
-set(CMAKE_CXX_FLAGS_PROFILE "-O2 -flto=auto -march=native -mtune=native -g -DNDEBUG")
+# compiler flags
+if (MSVC)
+    set(CMAKE_CXX_FLAGS_DEBUG "/Od /GL /Zi")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /GL /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_PROFILE "/O2 /GL /Zi")
+    set(CMAKE_CXX_FLAGS_OPTIMIZED "/O2 /GL /DNDEBUG")
+else()
+    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -flto=auto -pg -g")
+    set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -flto=auto -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_PROFILE "-O2 -flto=auto -g -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_OPTIMIZED "-Ofast -flto=auto -march=native -mtune=native -DNDEBUG")
+endif()
 
 option(ENABLE_TESTS "Enable building and running tests" ON)
 option(ENABLE_PYTHON_BINDINGS "Build Python bindings" ON)
@@ -46,12 +60,7 @@ add_library(city_of_gold_env
 
 target_include_directories(city_of_gold_env PRIVATE include)
 
-if (MSVC)
-    target_compile_options(city_of_gold_env PRIVATE /W4)
-else()
-    target_compile_options(city_of_gold_env PRIVATE -Wall -Wextra -Wshadow -Wconversion -pedantic)
-endif()
-
+# Tests
 if(ENABLE_TESTS)
     find_package(doctest REQUIRED)
 
@@ -63,29 +72,39 @@ if(ENABLE_TESTS)
     add_test(NAME EnvironmentUnitTests COMMAND test_environment)
 endif()
 
-set(sanitize 0)
-set(profile 0)
-if(DEFINED CMAKE_CONFIGURATION_TYPES)
-    set(sanitize "$<CONFIG:Debug>")
-    set(profile "$<CONFIG:Profile>")
+if(MSVC)
+    target_compile_options(city_of_gold_env PRIVATE /W4)
+    target_compile_options(city_of_gold_env PRIVATE
+        "$<$<CONFIG:Debug>:
+        /fsanitize=address
+        >"
+    )
+    target_link_libraries(city_of_gold_env PRIVATE
+        "$<$<CONFIG:Debug>:
+        /fsanitize=address
+        >"
+    )
 else()
-    if (CMAKE_BUILD_TYPE MATCHES Debug)
-        set(sanitize 1)
-    endif()
-    if (CMAKE_BUILD_TYPE MATCHES Profile)
-        set(profile 1)
-    endif()
+    target_compile_options(city_of_gold_env PRIVATE
+        -Wall
+        -Wextra
+        -Wshadow
+        -Wconversion
+        -pedantic
+    )
+    target_compile_options(city_of_gold_env PRIVATE
+        "$<$<CONFIG:Debug>:-fsanitize=address;-fsanitize=undefined;-fdiagnostics-color=always>"
+    )
+    target_link_libraries(city_of_gold_env PRIVATE
+        "$<$<CONFIG:Debug>:-fsanitize=address;-fsanitize=undefined>"
+    )
+    target_link_options(city_of_gold_env PRIVATE
+        "$<$<CONFIG:Debug>:-fsanitize=address;-fsanitize=undefined>"
+    )
 endif()
 
-if(sanitize)
-    target_compile_options(city_of_gold_env PRIVATE -fsanitize=address -fsanitize=undefined -fdiagnostics-color=always)
-    target_link_libraries(city_of_gold_env PRIVATE -fsanitize=address -fsanitize=undefined)
-    target_link_options(city_of_gold_env PRIVATE -fsanitize=address -fsanitize=undefined)
-elseif(profile)
-    add_executable(profile_environment src/tests/profile.cpp)
-    target_link_libraries(profile_environment PRIVATE city_of_gold_env)
-endif()
-
+add_executable(profile_environment src/tests/profile.cpp)
+target_link_libraries(profile_environment PRIVATE city_of_gold_env)
 
 if(ENABLE_PYTHON_BINDINGS)
 
@@ -100,9 +119,8 @@ if(ENABLE_PYTHON_BINDINGS)
 
     add_library(bindings_ MODULE src/pybind/common.cpp src/pybind/single_env.cpp src/pybind/vectorized.cpp)
 
-    if(profile)
-        target_link_libraries(bindings_ PRIVATE profiler tcmalloc)
-    endif()
+    # link gperftools deps conditionally
+    target_link_libraries(bindings_ PRIVATE "$<$<CONFIG:Profile>:profiler;tcmalloc>")
 
     target_link_libraries(bindings_ PRIVATE city_of_gold_env pybind11::module)
     target_include_directories(bindings_ PRIVATE external)

@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <numeric>
 
 std::vector<const Hex *> get_n_copies(const Hex *hex, size_t n) {
   std::vector<const Hex *> ret(n);
@@ -701,7 +702,7 @@ void Map::generate(u_char n_pieces, Difficulty difficulty, int failures,
   }
 
   u_char n_start_pieces = start_pieces.size();
-  MapPiece *start = &start_pieces[std::uniform_int_distribution<u_char>(
+  MapPiece *start = &start_pieces[std::uniform_int_distribution<size_t>(
       0, n_start_pieces - 1)(rng)];
   add_piece(start, point{0, 0}, 0);
   std::vector<size_t> valid_indices;
@@ -729,7 +730,7 @@ void Map::generate(u_char n_pieces, Difficulty difficulty, int failures,
       generate(n_pieces, difficulty, failures + 1, max_failures, rng);
     }
   }
-  MapPiece &end = end_pieces[std::uniform_int_distribution<u_char>(
+  MapPiece &end = end_pieces[std::uniform_int_distribution<size_t>(
       0, end_pieces.size() - 1)(rng)];
   bool success = add_random_piece(&end, rng);
   if (not success) {
