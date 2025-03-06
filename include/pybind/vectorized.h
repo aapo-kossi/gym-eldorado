@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <format>
 /*#include <iostream>*/
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -160,13 +161,41 @@ public:
 };
 
 template <size_t N> void bind_vec_env(py::module_ &m) {
-  py::class_<py_vec_env<N>>(
-      m, (std::string(vec_env_cls) + std::to_string(N)).c_str())
-      .def(py::init())
-      .def("reset", py::overload_cast<>(&py_vec_env<N>::reset))
+  std::string num = std::to_string(N);
+  std::string name = std::string(vec_env_cls) + num;
+  std::string doc = std::format(
+      R"pbdoc(
+      Vectorized city of gold environment for {0} environments.
+
+      :meth:`{1}.reset` must be called first to initialize the environments
+      before stepping. This also allows setting the parameters for
+      random number generation, number of players, and map generation.
+      Sets default game parameters:
+      * seed: std::random_device()()
+      * n_players: 4
+      * n_pieces: 3
+      * difficulty: Difficulty.EASY
+      * max_steps: 100_000
+      * render: False
+
+      :return: The (uninitialized) vectorized environments.
+      )pbdoc",
+      N, name);
+
+  py::class_<py_vec_env<N>>(m, name.c_str(), doc.c_str())
+      .def(py::init(), "Create the environments")
+      .def("reset", py::overload_cast<>(&py_vec_env<N>::reset), R"pbdoc(
+           Reset all environments, not modifying current parameters
+
+           If no environment parameters have been previously set,
+           the default parameters from when the instance was constructed
+           are used.
+
+           :return: None
+      )pbdoc")
       .def("reset",
-           py::overload_cast<uint32_t, u_char, u_char, Difficulty,
-                             unsigned int, bool>(&py_vec_env<N>::reset))
+           py::overload_cast<uint32_t, u_char, u_char, Difficulty, unsigned int,
+                             bool>(&py_vec_env<N>::reset))
       .def("step", &py_vec_env<N>::step, py::arg("actions"))
       .def_property_readonly("observations", &py_vec_env<N>::observe,
                              py::return_value_policy::reference_internal)
@@ -226,16 +255,22 @@ template <size_t N> void bind_runner(py::module_ &m) {
       .def("sample", &py_threaded_runner<N>::sample);
 }
 
-template <size_t N> void bind_runners(py::module_ &m) {
-  bind_vec_sampler<N>(m);
-  bind_vec_env<N>(m);
-  bind_runner<N>(m);
-  if constexpr ( N >= 16) {
-    bind_runners<N / 2>(m);
-  } else {
-    bind_runners<N - 1>(m);
-  }
+void bind_vec_getters(py::module_ &m_parent, py::module_ &m_samplers, py::module_ &m_envs, py::module_ &m_runners);
+
+template <size_t N, size_t i=0> void bind_internal(py::module_ &m_s, py::module_ &m_e, py::module_ &m_r) {
+  bind_vec_sampler<i>(m_s);
+  bind_vec_env<i>(m_e);
+  bind_runner<i>(m_r);
+  if constexpr ( i >= N) return;
+  else if constexpr ( i >= 8) return bind_internal<N,i*2>(m_s, m_e, m_r);
+  else return bind_internal<N,i+1>(m_s, m_e, m_r);
 }
 
-template <> void bind_runners<0>(py::module_ &m);
+template <size_t N> void bind_runners(py::module_ &m_parent) {
+  auto m_env = m_parent.def_submodule("env", "Vectorized environments");
+  auto m_sam = m_parent.def_submodule("sampler", "Vectorized action samplers");
+  auto m_run = m_parent.def_submodule("runner", "Vectorized runners");
+  bind_internal<N>(m_env, m_sam, m_run);
+  bind_vec_getters(m_parent, m_env, m_sam, m_run);
+}
 

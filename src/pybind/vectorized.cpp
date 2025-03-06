@@ -2,20 +2,20 @@
 #include <string_view>
 
 std::string_view vec_env_cls = "vec_cog_env_";
-std::string_view vec_sampler_cls = "vec_sampler";
-std::string_view vec_runner_cls = "vec_runner";
+std::string_view vec_sampler_cls = "vec_sampler_";
+std::string_view vec_runner_cls = "vec_runner_";
 
-template <> void bind_runners<0>(py::module_ &m) {
-  m.def("get_runner", [m](size_t N) -> py::object {
+void bind_vec_getters(py::module_ &m_parent, py::module_ &m_samplers, py::module_ &m_envs, py::module_ &m_runners) {
+  m_parent.def("get_runner", [m_runners](size_t N) -> py::object {
     std::string name = std::string(vec_runner_cls) + std::to_string(N);
-    return m.attr(name.c_str());
+    return m_runners.attr(name.c_str());
   });
-  m.def("get_vec_env", [m](size_t N) -> py::object {
+  m_parent.def("get_vec_env", [m_envs](size_t N) -> py::object {
     std::string name = std::string(vec_env_cls) + std::to_string(N);
-    return m.attr(name.c_str());
+    return m_envs.attr(name.c_str());
   });
-  m.def("get_vec_sampler", [m](size_t N) -> py::object {
+  m_parent.def("get_vec_sampler", [m_samplers](size_t N) -> py::object {
     std::string name = std::string(vec_sampler_cls) + std::to_string(N);
-    return m.attr(name.c_str());
+    return m_samplers.attr(name.c_str());
   });
 };

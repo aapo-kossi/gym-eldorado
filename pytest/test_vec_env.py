@@ -4,6 +4,7 @@ import numpy as np
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
 import city_of_gold
+from city_of_gold import vec
 
 def fit_linear_regression(times, sizes):
     flat_times = times.flatten()
@@ -71,12 +72,12 @@ def visualize_comparisons(results, sizes, steps):
     plt.show()
 
 def run_test(steps, n_envs, seed, threaded=False, threads=None, sync=False):
-    env_cls = city_of_gold.get_vec_env(n_envs)
-    sampler_cls = city_of_gold.get_vec_sampler(n_envs)
+    env_cls = vec.get_vec_env(n_envs)
+    sampler_cls = vec.get_vec_sampler(n_envs)
     envs = env_cls()
     samplers = sampler_cls(seed)
     if threaded:
-        runner_cls = city_of_gold.get_runner(n_envs)
+        runner_cls = vec.get_runner(n_envs)
         runner = runner_cls(envs, samplers, threads)
         if sync:
             step_fun = lambda _: runner.step_sync()

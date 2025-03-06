@@ -3,7 +3,7 @@
 #include "pybind/vectorized.h"
 
 PYBIND11_MODULE(city_of_gold, m) {
-  m.doc() = "Python bindings for The Quest for El Dorado C++ environment";
+  m.doc() = "Python bindings for City of Gold C++ RL environment";
 
   PYBIND11_NUMPY_DTYPE(DeckObs, draw, hand, active, played, discard);
   PYBIND11_NUMPY_DTYPE(ActionMask, play, play_special, remove, get_from_shop,
@@ -26,7 +26,8 @@ PYBIND11_MODULE(city_of_gold, m) {
       .def(py::init<uint32_t>(), py::arg("seed"))
       .def("sample", &action_sampler::sample);
 
-  bind_runners<max_envs>(m);
+  auto m_vec = m.def_submodule("vec", "Vectorized utilities");
+  bind_runners<max_envs>(m_vec);
 
   py::enum_<Difficulty>(m, "Difficulty")
       .value("EASY", Difficulty::EASY)
